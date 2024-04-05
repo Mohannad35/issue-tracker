@@ -1,29 +1,29 @@
 'use client';
 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Card, CardBody, CardFooter, CardHeader, Input } from '@nextui-org/react';
 import MDEditor from '@uiw/react-md-editor';
-import { has } from 'lodash';
 import { PlusIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
-const schema = z.object({
-  title: z
-    .string({ required_error: 'Required' })
-    .min(2, 'at least 2 characters')
-    .max(255, 'at most 255 characters'),
-  description: z.string().min(2, 'at least 2 characters'),
-});
-
-interface Errors {
-  title?: string[];
-  description?: string[];
-}
+import { issueFormSchema } from './issueFormSchema';
 
 export default function NewIssuesPage() {
   const { theme } = useTheme();
   const [sysTheme, setSysTheme] = useState('light');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const prefersDarkMode =
@@ -31,81 +31,108 @@ export default function NewIssuesPage() {
     setSysTheme(prefersDarkMode ? 'dark' : 'light');
   }, [theme]);
 
-  const [title, setTitle] = useState<string | undefined>(undefined);
-  const [description, setDescription] = useState<string | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<Errors>({});
+  // 1. Define your form.
+  const form = useForm<z.infer<typeof issueFormSchema>>({
+    resolver: zodResolver(issueFormSchema),
+    defaultValues: {
+      title: undefined,
+      description: undefined,
+    },
+  });
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Validate the form feilds
-    const validationResult = schema.safeParse({ title, description });
-    if (!validationResult.success) {
-      // Set the errors and return
-      return setErrors(validationResult.error.flatten().fieldErrors);
-    }
+  // 2. Define a submit handler.
+  async function onSubmit(values: z.infer<typeof issueFormSchema>) {
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+    console.log(values);
     setIsLoading(true);
-    setTimeout(() => {
+    const res = await fetch('/api/issues', {
+      body: JSON.stringify(values),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (res.ok) {
+      setTimeout(() => {
+        router.push('/issues');
+      }, 1000);
+    } else {
+      console.log(res);
       setIsLoading(false);
-    }, 3000);
-    console.log(validationResult.data);
-  };
+      // Show error message using toast or something and reset the form
+    }
+  }
 
   return (
     <div className='container flex justify-center'>
-      <form onSubmit={onSubmit}>
-        <Card className='p-5 w-[40rem]'>
-          <CardHeader>
-            <p className='text-3xl font-medium'>New Issue</p>
-          </CardHeader>
-          <CardBody className='space-y-5'>
-            <Input
-              value={title}
-              onValueChange={setTitle}
-              type='title'
-              label='Title'
-              variant='underlined'
-              validate={_ => (has(errors, 'title') ? true : null)}
-              validationBehavior='native'
-              color={title === undefined ? 'default' : has(errors, 'title') ? 'danger' : 'success'}
-              errorMessage={errors.title?.join(', ')}
-              isRequired
-            />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+          <Card className='p-5 w-[40rem]'>
+            <CardHeader>
+              <p className='text-3xl font-medium'>New Issue</p>
+            </CardHeader>
 
-            <MDEditor
-              value={description}
-              data-color-mode={
-                theme === 'system'
-                  ? sysTheme === 'dark'
-                    ? 'dark'
-                    : 'light'
-                  : theme === 'dark'
-                  ? 'dark'
-                  : 'light'
-              }
-              onChange={setDescription}
-              textareaProps={{ placeholder: 'Please enter issue description' }}
-              minHeight={300}
-              height={300}
-            />
-          </CardBody>
+            <CardBody className='space-y-5'>
+              <FormField
+                control={form.control}
+                name='title'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input label='Title' variant='underlined' isRequired {...field} />
+                      {/* <Input placeholder='shadcn' {...field} /> */}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <CardFooter>
-            <Button
-              fullWidth
-              type='submit'
-              color='primary'
-              variant='solid'
-              startContent={<PlusIcon />}
-              isLoading={isLoading}
-              spinnerPlacement='end'
-              className='text-base font-semibold'
-            >
-              New Issue
-            </Button>
-          </CardFooter>
-        </Card>
-      </form>
+              <FormField
+                control={form.control}
+                name='description'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className='text-muted-foreground'>Description</FormLabel>
+                    <FormLabel className='text-red-500'>*</FormLabel>
+                    <FormControl>
+                      <MDEditor
+                        data-color-mode={
+                          theme === 'system'
+                            ? sysTheme === 'dark'
+                              ? 'dark'
+                              : 'light'
+                            : theme === 'dark'
+                            ? 'dark'
+                            : 'light'
+                        }
+                        textareaProps={{ placeholder: 'Please enter issue description' }}
+                        minHeight={300}
+                        height={300}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardBody>
+
+            <CardFooter>
+              <Button
+                fullWidth
+                type='submit'
+                color='primary'
+                variant='solid'
+                startContent={<PlusIcon />}
+                isLoading={isLoading}
+                spinnerPlacement='end'
+                className='text-base font-semibold'
+              >
+                New Issue
+              </Button>
+            </CardFooter>
+          </Card>
+        </form>
+      </Form>
     </div>
   );
 }
