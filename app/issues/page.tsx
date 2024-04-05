@@ -1,7 +1,12 @@
 import React from 'react';
+import CustomButton from './customButton';
 
 const IssuesPage = () => {
-  return <div>IssuesPage</div>;
+  return (
+    <div className='container'>
+      <CustomButton />
+    </div>
+  );
 };
 
 export default IssuesPage;
