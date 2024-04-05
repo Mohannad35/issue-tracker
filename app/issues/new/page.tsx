@@ -18,11 +18,14 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { issueFormSchema } from './issueFormSchema';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 export default function NewIssuesPage() {
   const { theme } = useTheme();
   const [sysTheme, setSysTheme] = useState('light');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -46,6 +49,7 @@ export default function NewIssuesPage() {
     // ✅ This will be type-safe and validated.
     console.log(values);
     setIsLoading(true);
+    setError('');
     const res = await fetch('/api/issues', {
       body: JSON.stringify(values),
       method: 'POST',
@@ -57,16 +61,25 @@ export default function NewIssuesPage() {
       }, 1000);
     } else {
       console.log(res);
+      setError('An unexpected error occurred. Please try again later.');
       setIsLoading(false);
       // Show error message using toast or something and reset the form
     }
   }
 
   return (
-    <div className='container flex justify-center'>
+    <div className='container flex justify-center flex-col w-[50rem] space-y-5'>
+      {error && (
+        <Alert variant='destructive'>
+          <ExclamationTriangleIcon className='h-4 w-4' />
+          <AlertTitle>Unexpected error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-          <Card className='p-5 w-[40rem]'>
+          <Card className='p-5'>
             <CardHeader>
               <p className='text-3xl font-medium'>New Issue</p>
             </CardHeader>
@@ -79,7 +92,6 @@ export default function NewIssuesPage() {
                   <FormItem>
                     <FormControl>
                       <Input label='Title' variant='underlined' isRequired {...field} />
-                      {/* <Input placeholder='shadcn' {...field} /> */}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
