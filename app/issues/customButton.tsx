@@ -3,7 +3,7 @@
 import { Button } from '@nextui-org/react';
 import { LayoutDashboard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const CustomButton = () => {
   const [isLoading, setIsLoading] = useState(false);

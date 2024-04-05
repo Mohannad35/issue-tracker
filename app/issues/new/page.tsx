@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Button, Card, CardBody, CardFooter, CardHeader, Input, Textarea } from '@nextui-org/react';
-import { z } from 'zod';
-import { PlusIcon } from 'lucide-react';
+import { Button, Card, CardBody, CardFooter, CardHeader, Input } from '@nextui-org/react';
+import MDEditor from '@uiw/react-md-editor';
 import { has } from 'lodash';
+import { PlusIcon } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
+import { z } from 'zod';
 
 const schema = z.object({
   title: z
@@ -20,6 +22,15 @@ interface Errors {
 }
 
 export default function NewIssuesPage() {
+  const { theme } = useTheme();
+  const [sysTheme, setSysTheme] = useState('light');
+
+  useEffect(() => {
+    const prefersDarkMode =
+      window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setSysTheme(prefersDarkMode ? 'dark' : 'light');
+  }, [theme]);
+
   const [title, setTitle] = useState<string | undefined>(undefined);
   const [description, setDescription] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,26 +38,23 @@ export default function NewIssuesPage() {
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     // Validate the form feilds
     const validationResult = schema.safeParse({ title, description });
     if (!validationResult.success) {
       // Set the errors and return
       return setErrors(validationResult.error.flatten().fieldErrors);
     }
-
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
     }, 3000);
-
     console.log(validationResult.data);
   };
 
   return (
     <div className='container flex justify-center'>
       <form onSubmit={onSubmit}>
-        <Card className='p-5 w-[30rem]'>
+        <Card className='p-5 w-[40rem]'>
           <CardHeader>
             <p className='text-3xl font-medium'>New Issue</p>
           </CardHeader>
@@ -63,25 +71,25 @@ export default function NewIssuesPage() {
               errorMessage={errors.title?.join(', ')}
               isRequired
             />
-            <Textarea
+
+            <MDEditor
               value={description}
-              onValueChange={setDescription}
-              label='Description'
-              variant='underlined'
-              // placeholder='Enter issue description'
-              validate={_ => (has(errors, 'description') ? true : null)}
-              validationBehavior='native'
-              color={
-                description === undefined
-                  ? 'default'
-                  : has(errors, 'description')
-                  ? 'danger'
-                  : 'success'
+              data-color-mode={
+                theme === 'system'
+                  ? sysTheme === 'dark'
+                    ? 'dark'
+                    : 'light'
+                  : theme === 'dark'
+                  ? 'dark'
+                  : 'light'
               }
-              errorMessage={errors.description?.join(', ')}
-              isRequired
+              onChange={setDescription}
+              textareaProps={{ placeholder: 'Please enter issue description' }}
+              minHeight={300}
+              height={300}
             />
           </CardBody>
+
           <CardFooter>
             <Button
               fullWidth

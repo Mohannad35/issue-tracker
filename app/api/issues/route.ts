@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import prisma from '@/prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { formatErrors } from '../format-errors';
-import prisma from '@/prisma/client';
 
 const createIssueSchema = z
   .object({
