@@ -1,9 +1,15 @@
+'use client';
+
 import Link from 'next/link';
 import React from 'react';
 import { AiFillBug } from 'react-icons/ai';
 import { ThemeToggle } from './ThemeModeToggle';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 const NavBar = () => {
+  const currentPath = usePathname();
+
   const Links = [
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Issues', href: '/issues' },
@@ -27,7 +33,16 @@ const NavBar = () => {
           <Link
             key={i}
             href={link.href}
-            className='text-muted-foreground hover:text-foreground transition-colors'
+            // `${
+            //   link.href === currentPath ? 'font-medium text-foreground' : 'text-muted-foreground'
+            // } hover:text-foreground transition-colors`
+            className={cn(
+              {
+                'font-medium text-foreground': link.href === currentPath,
+                'text-muted-foreground': link.href !== currentPath,
+              },
+              'hover:text-foreground transition-colors'
+            )}
           >
             {link.name}
           </Link>
