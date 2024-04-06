@@ -46,7 +46,7 @@ export const columns: ColumnDef<Issue>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
     cell: ({ row }) => (
       <div className='flex space-x-2'>
-        <span className='max-w-[500px] truncate font-medium'>{row.getValue('description')}</span>
+        <span className='max-w-[400px] truncate font-medium'>{row.getValue('description')}</span>
       </div>
     ),
   },
@@ -57,7 +57,7 @@ export const columns: ColumnDef<Issue>[] = [
       const status = statuses.find(status => status.value === row.getValue('status'));
       if (!status) return null;
       return (
-        <div className='flex w-[100px] items-center'>
+        <div className='flex'>
           {status.icon && <status.icon className='mr-2 h-4 w-4 text-muted-foreground' />}
           <span>{status.label}</span>
         </div>
@@ -75,7 +75,7 @@ export const columns: ColumnDef<Issue>[] = [
       if (!priority) return null;
 
       return (
-        <div className='flex items-center'>
+        <div className='flex'>
           {priority.icon && <priority.icon className='mr-2 h-4 w-4 text-muted-foreground' />}
           <span>{priority.label}</span>
         </div>
@@ -83,6 +83,17 @@ export const columns: ColumnDef<Issue>[] = [
     },
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
+    },
+  },
+  {
+    accessorKey: 'createdAt',
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Date Created' />,
+    cell: ({ row }) => {
+      return (
+        <div className='flex'>
+          <span className='font-medium'>{new Date(row.getValue('createdAt')).toDateString()}</span>
+        </div>
+      );
     },
   },
   {

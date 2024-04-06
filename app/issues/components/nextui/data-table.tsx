@@ -11,6 +11,7 @@ import {
   Pagination,
   Selection,
   SortDescriptor,
+  Spinner,
   Table,
   TableBody,
   TableCell,
@@ -18,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from '@nextui-org/react';
-import { format } from 'date-fns';
 import { ChangeEvent, Key, useCallback, useMemo, useState } from 'react';
 import { columns, Issue, priorities, statusOptions } from './data';
 import { capitalize } from './utils';
@@ -32,7 +32,7 @@ const INITIAL_VISIBLE_COLUMNS = [
   'actions',
 ];
 
-export default function TableNextUi({ issues }: { issues: Issue[] }) {
+export default function TableNextUi({ issues, loading }: { issues: Issue[]; loading: boolean }) {
   const [filterValue, setFilterValue] = useState('');
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
   const [visibleColumns, setVisibleColumns] = useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));
@@ -48,7 +48,7 @@ export default function TableNextUi({ issues }: { issues: Issue[] }) {
 
   const headerColumns = useMemo(() => {
     if (visibleColumns === 'all') return columns;
-    return columns.filter(column => Array.from(visibleColumns).includes(column.uid));
+    return columns.filter(column => Array.from(visibleColumns).includes(column.value));
   }, [visibleColumns]);
 
   const filteredItems = useMemo(() => {
@@ -64,20 +64,20 @@ export default function TableNextUi({ issues }: { issues: Issue[] }) {
     return filteredIssues;
   }, [issues, filterValue, statusFilter]);
 
-  const items = useMemo(() => {
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    return filteredItems.slice(start, end);
-  }, [page, filteredItems, rowsPerPage]);
-
   const sortedItems = useMemo(() => {
-    return [...items].sort((a: Issue, b: Issue) => {
+    return [...filteredItems].sort((a: Issue, b: Issue) => {
       const first = a[sortDescriptor.column as keyof Issue] as string | Date;
       const second = b[sortDescriptor.column as keyof Issue] as string | Date;
       const cmp = first < second ? -1 : first > second ? 1 : 0;
       return sortDescriptor.direction === 'descending' ? -cmp : cmp;
     });
-  }, [sortDescriptor, items]);
+  }, [sortDescriptor, filteredItems]);
+
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return sortedItems.slice(start, end);
+  }, [page, sortedItems, rowsPerPage]);
 
   const renderCell = useCallback((issue: Issue, columnKey: Key): string | JSX.Element => {
     const cellValue = issue[columnKey as keyof Issue];
@@ -95,12 +95,12 @@ export default function TableNextUi({ issues }: { issues: Issue[] }) {
           </div>
         );
       case 'status':
-        const status = statusOptions.find(status => status.uid === cellValue);
+        const status = statusOptions.find(status => status.value === cellValue);
         if (!status) return '';
         return (
           <div className='flex items-center'>
             {status.icon && <status.icon className='mr-2 h-4 w-4 text-muted-foreground' />}
-            <span>{status.name}</span>
+            <span>{status.label}</span>
           </div>
         );
       case 'priority':
@@ -115,7 +115,7 @@ export default function TableNextUi({ issues }: { issues: Issue[] }) {
       case 'createdAt':
         return (
           <div className='flex items-center'>
-            <span>{format(cellValue, 'yyyy MMMM dd')}</span>
+            <span>{new Date(cellValue).toDateString()}</span>
           </div>
         );
       case 'actions':
@@ -191,8 +191,8 @@ export default function TableNextUi({ issues }: { issues: Issue[] }) {
                 onSelectionChange={setStatusFilter}
               >
                 {statusOptions.map(status => (
-                  <DropdownItem key={status.uid} className='capitalize'>
-                    {capitalize(status.name)}
+                  <DropdownItem key={status.value} className='capitalize'>
+                    {capitalize(status.label)}
                   </DropdownItem>
                 ))}
               </DropdownMenu>
@@ -216,7 +216,7 @@ export default function TableNextUi({ issues }: { issues: Issue[] }) {
                 onSelectionChange={setVisibleColumns}
               >
                 {columns.map(column => (
-                  <DropdownItem key={column.uid} className='capitalize'>
+                  <DropdownItem key={column.value} className='capitalize'>
                     {capitalize(column.name)}
                   </DropdownItem>
                 ))}
@@ -283,6 +283,7 @@ export default function TableNextUi({ issues }: { issues: Issue[] }) {
 
   const classNames = useMemo(
     () => ({
+      wrapper: ['bg-transparent', 'p-1 m-0', 'border'],
       th: ['bg-transparent', 'text-default-500', 'border-b', 'border-divider'],
       td: [
         // changing the rows border radius
@@ -302,7 +303,7 @@ export default function TableNextUi({ issues }: { issues: Issue[] }) {
   return (
     <Table
       // isCompact
-      removeWrapper
+      // removeWrapper
       aria-label='Example table with custom cells, pagination and sorting'
       bottomContent={bottomContent}
       bottomContentPlacement='outside'
@@ -323,17 +324,28 @@ export default function TableNextUi({ issues }: { issues: Issue[] }) {
       <TableHeader columns={headerColumns}>
         {column => (
           <TableColumn
-            key={column.uid}
-            align={column.uid === 'actions' ? 'center' : 'start'}
+            key={column.value}
+            align={column.align as 'center' | 'end' | 'start'}
             allowsSorting={column.sortable}
           >
             {column.name}
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody emptyContent={'No issues found'} items={sortedItems}>
+      <TableBody
+        items={items}
+        isLoading={loading}
+        loadingContent={
+          <div className='flex flex-col w-full h-full'>
+            <div className='flex w-full h-14' />
+            <div className='flex w-full h-full items-center justify-center bg-background z-10'>
+              <Spinner />
+            </div>
+          </div>
+        }
+        emptyContent={'No issues found'}
+      >
         {item => {
-          console.log('item', item);
           return (
             <TableRow key={item.id}>
               {columnKey => <TableCell>{renderCell(item, columnKey)}</TableCell>}

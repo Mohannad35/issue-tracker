@@ -9,25 +9,82 @@ import {
 } from '@radix-ui/react-icons';
 
 export const columns = [
-  { name: 'TITLE', uid: 'title', sortable: true },
-  { name: 'DESCRIPTION', uid: 'description', sortable: true },
-  { name: 'STATUS', uid: 'status', sortable: true },
-  { name: 'PRIORITY', uid: 'priority', sortable: true },
-  { name: 'CREATED AT', uid: 'createdAt', sortable: true },
-  { name: 'ACTIONS', uid: 'actions' },
+  {
+    name: 'TITLE',
+    value: 'title',
+    sortable: true,
+    align: 'start',
+  },
+  {
+    name: 'DESCRIPTION',
+    value: 'description',
+    sortable: true,
+    align: 'start',
+  },
+  {
+    name: 'STATUS',
+    value: 'status',
+    sortable: true,
+    align: 'start',
+  },
+  {
+    name: 'PRIORITY',
+    value: 'priority',
+    sortable: true,
+    align: 'start',
+  },
+  {
+    name: 'CREATED AT',
+    value: 'createdAt',
+    sortable: true,
+    align: 'start',
+  },
+  {
+    name: '',
+    value: 'actions',
+    align: 'end',
+  },
 ];
 
 export const statusOptions = [
-  { name: 'Open', uid: 'OPEN', icon: CircleIcon },
-  { name: 'In Progress', uid: 'IN_PROGRESS', icon: StopwatchIcon },
-  { name: 'Done', uid: 'DONE', icon: CheckCircledIcon },
-  { name: 'Canceled', uid: 'CANCELLED', icon: CrossCircledIcon },
+  {
+    label: 'Open',
+    value: 'OPEN',
+    icon: CircleIcon,
+  },
+  {
+    label: 'In Progress',
+    value: 'IN_PROGRESS',
+    icon: StopwatchIcon,
+  },
+  {
+    label: 'Done',
+    value: 'DONE',
+    icon: CheckCircledIcon,
+  },
+  {
+    label: 'Canceled',
+    value: 'CANCELLED',
+    icon: CrossCircledIcon,
+  },
 ];
 
 export const priorities = [
-  { label: 'Low', value: 'LOW', icon: ArrowDownIcon },
-  { label: 'Medium', value: 'MEDIUM', icon: ArrowRightIcon },
-  { label: 'High', value: 'HIGH', icon: ArrowUpIcon },
+  {
+    label: 'Low',
+    value: 'LOW',
+    icon: ArrowDownIcon,
+  },
+  {
+    label: 'Medium',
+    value: 'MEDIUM',
+    icon: ArrowRightIcon,
+  },
+  {
+    label: 'High',
+    value: 'HIGH',
+    icon: ArrowUpIcon,
+  },
 ];
 
 // This type is used to define the shape of our data.

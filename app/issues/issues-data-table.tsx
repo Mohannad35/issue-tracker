@@ -33,7 +33,7 @@ const IssuesDataTable = () => {
   };
   return (
     <div className='flex flex-col space-y-10'>
-      <TableNextUi issues={issues} />
+      <TableNextUi issues={issues} loading={loading} />
       <DataTable data={issues} columns={columns} refreshData={refreshData} loading={loading} />
     </div>
   );
