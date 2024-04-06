@@ -4,7 +4,7 @@ import IssuesDataTable from './issues-data-table';
 
 const IssuesPage = () => {
   return (
-    <div className='container flex flex-col w-full space-y-5'>
+    <div className='container flex flex-col w-full space-y-5 pb-20'>
       <div className='flex justify-between'>
         <NewIssueButton />
         <SeedIssueButton />

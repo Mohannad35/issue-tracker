@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { columns } from './components/coloumns';
 import { DataTable } from './components/data-table';
 import { Issue } from './components/issue-schema';
+import TableNextUi from './components/nextui/data-table';
 
 export async function getIssues() {
   // const headersList = headers();
@@ -31,9 +32,10 @@ const IssuesDataTable = () => {
     setLoading(false);
   };
   return (
-    <>
+    <div className='flex flex-col space-y-10'>
+      <TableNextUi issues={issues} />
       <DataTable data={issues} columns={columns} refreshData={refreshData} loading={loading} />
-    </>
+    </div>
   );
 };
 
