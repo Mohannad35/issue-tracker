@@ -47,12 +47,12 @@ export default function NavBar() {
       {/* Right side of the navbar */}
       <NavbarContent justify='end' className='gap-0'>
         <NavbarItem className='hidden lg:flex'>
-          <Button as={Link} color='primary' href='#' variant='light'>
+          <Button as={Link} color='default' href='#' variant='light'>
             Login
           </Button>
         </NavbarItem>
         <NavbarItem>
-          <Button as={Link} color='primary' href='#' variant='light'>
+          <Button as={Link} color='default' href='#' variant='light'>
             Sign Up
           </Button>
         </NavbarItem>

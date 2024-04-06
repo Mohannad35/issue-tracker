@@ -17,6 +17,13 @@ enum Status {
   OPEN
   IN_PROGRESS
   DONE
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 model Issue {
@@ -24,6 +31,7 @@ model Issue {
   title       String
   description String
   status      Status   @default(OPEN)
+  priority    Priority @default(MEDIUM)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

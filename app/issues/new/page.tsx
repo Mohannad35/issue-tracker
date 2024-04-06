@@ -1,5 +1,6 @@
 'use client';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Form,
   FormControl,
@@ -8,8 +9,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { createIssueSchema } from '@/lib/validationSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Card, CardBody, CardFooter, CardHeader, Input } from '@nextui-org/react';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import MDEditor from '@uiw/react-md-editor';
 import { PlusIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
@@ -17,15 +20,12 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { issueFormSchema } from './issueFormSchema';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 export default function NewIssuesPage() {
-  const { theme } = useTheme();
   const [sysTheme, setSysTheme] = useState('light');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { theme } = useTheme();
   const router = useRouter();
 
   useEffect(() => {
@@ -34,36 +34,32 @@ export default function NewIssuesPage() {
     setSysTheme(prefersDarkMode ? 'dark' : 'light');
   }, [theme]);
 
-  // 1. Define your form.
-  const form = useForm<z.infer<typeof issueFormSchema>>({
-    resolver: zodResolver(issueFormSchema),
+  // Define form with zod schema
+  const form = useForm<z.infer<typeof createIssueSchema>>({
+    resolver: zodResolver(createIssueSchema),
     defaultValues: {
       title: undefined,
       description: undefined,
     },
+    shouldFocusError: false,
   });
 
-  // 2. Define a submit handler.
-  async function onSubmit(values: z.infer<typeof issueFormSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-    setIsLoading(true);
+  // Define a submit handler
+  async function onSubmit(values: z.infer<typeof createIssueSchema>) {
+    // ✅ This will be type-safe and validated values
     setError('');
+    setIsLoading(true);
+    // Make a request to the server to create a new issue with the submitted values
     const res = await fetch('/api/issues', {
       body: JSON.stringify(values),
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
-    if (res.ok) {
-      setTimeout(() => {
-        router.push('/issues');
-      }, 1000);
-    } else {
+    if (res.ok) setTimeout(() => router.push('/issues'), 1000);
+    else {
       console.log(res);
       setError('An unexpected error occurred. Please try again later.');
       setIsLoading(false);
-      // Show error message using toast or something and reset the form
     }
   }
 

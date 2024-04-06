@@ -1,30 +1,25 @@
 'use client';
 
 import { Button } from '@nextui-org/react';
-import { LayoutDashboard } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-const CustomButton = () => {
-  const [isLoading, setIsLoading] = useState(false);
+const NewIssueButton = () => {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const onPressButton = () => {
     setIsLoading(true);
     router.push('/issues/new');
-
-    // setTimeout(() => {
-    //   setIsLoading(false);
-    // }, 3000);
   };
 
   return (
     <Button
-      color='primary'
+      color='default'
       variant='solid'
-      startContent={<LayoutDashboard />}
+      startContent={<PlusCircle />}
       isLoading={isLoading}
-      // spinnerPlacement='end'
       onPress={onPressButton}
     >
       New Issue
@@ -32,4 +27,4 @@ const CustomButton = () => {
   );
 };
 
-export default CustomButton;
+export default NewIssueButton;
