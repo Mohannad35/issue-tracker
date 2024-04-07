@@ -1,120 +1,358 @@
 'use client';
 
+import { Icons } from '@/components/icons';
 import {
+  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Input,
+  Pagination,
+  Selection,
+  SortDescriptor,
+  Spinner,
   Table,
   TableBody,
   TableCell,
-  TableHead,
+  TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import * as React from 'react';
-import { DataTablePagination } from './data-table-pagination';
-import { DataTableToolbar } from './data-table-toolbar';
-import { Spinner } from '@nextui-org/react';
+} from '@nextui-org/react';
+import { capitalize } from 'lodash';
+import { ChangeEvent, Key, useCallback, useMemo, useState } from 'react';
+import { columns, Issue, priorities, statusOptions } from './utils';
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-  refreshData: () => Promise<void>;
-  loading: boolean;
-}
+const INITIAL_VISIBLE_COLUMNS = [
+  'title',
+  'description',
+  'status',
+  'priority',
+  'createdAt',
+  'actions',
+];
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-  refreshData,
+export default function TableNextUi({
+  data: issues,
   loading,
-}: DataTableProps<TData, TValue>) {
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-    },
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+}: {
+  data: Issue[];
+  loading: boolean;
+}) {
+  const [filterValue, setFilterValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
+  const [visibleColumns, setVisibleColumns] = useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));
+  const [statusFilter, setStatusFilter] = useState<Selection>('all');
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
+    column: 'createdAt',
+    direction: 'ascending',
   });
+  const [page, setPage] = useState(1);
+  const pages = Math.ceil(issues.length / rowsPerPage);
+  const hasSearchFilter = Boolean(filterValue);
+
+  const headerColumns = useMemo(() => {
+    if (visibleColumns === 'all') return columns;
+    return columns.filter(column => Array.from(visibleColumns).includes(column.value));
+  }, [visibleColumns]);
+
+  const filteredItems = useMemo(() => {
+    let filteredIssues = [...issues];
+    if (hasSearchFilter)
+      filteredIssues = filteredIssues.filter(issue =>
+        issue.title.toLowerCase().includes(filterValue.toLowerCase())
+      );
+    if (statusFilter !== 'all' && Array.from(statusFilter).length !== statusOptions.length)
+      filteredIssues = filteredIssues.filter(issue =>
+        Array.from(statusFilter).includes(issue.status)
+      );
+    return filteredIssues;
+  }, [issues, filterValue, statusFilter]);
+
+  const sortedItems = useMemo(() => {
+    return [...filteredItems].sort((a: Issue, b: Issue) => {
+      const first = a[sortDescriptor.column as keyof Issue] as string | Date;
+      const second = b[sortDescriptor.column as keyof Issue] as string | Date;
+      const cmp = first < second ? -1 : first > second ? 1 : 0;
+      return sortDescriptor.direction === 'descending' ? -cmp : cmp;
+    });
+  }, [sortDescriptor, filteredItems]);
+
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    return sortedItems.slice(start, end);
+  }, [page, sortedItems, rowsPerPage]);
+
+  const renderCell = useCallback((issue: Issue, columnKey: Key): string | JSX.Element => {
+    const cellValue = issue[columnKey as keyof Issue];
+    switch (columnKey) {
+      case 'title':
+        return (
+          <div className='flex'>
+            <span className='max-w-[300px] truncate font-medium'>{String(cellValue)}</span>
+          </div>
+        );
+      case 'description':
+        return (
+          <div className='flex flex-col'>
+            <span className='max-w-[400px] truncate'>{String(cellValue)}</span>
+          </div>
+        );
+      case 'status':
+        const status = statusOptions.find(status => status.value === cellValue);
+        if (!status) return '';
+        return (
+          <div className='flex items-center'>
+            {status.icon && <status.icon className='mr-2 h-4 w-4 text-muted-foreground' />}
+            <span>{status.label}</span>
+          </div>
+        );
+      case 'priority':
+        const priority = priorities.find(priority => priority.value === cellValue);
+        if (!priority) return '';
+        return (
+          <div className='flex items-center'>
+            {priority.icon && <priority.icon className='mr-2 h-4 w-4 text-muted-foreground' />}
+            <span>{priority.label}</span>
+          </div>
+        );
+      case 'createdAt':
+        return (
+          <div className='flex items-center'>
+            <span>{new Date(cellValue).toDateString()}</span>
+          </div>
+        );
+      case 'actions':
+        return (
+          <div className='relative flex justify-end items-center gap-2'>
+            <Dropdown className='bg-background border-1 border-default-200'>
+              <DropdownTrigger>
+                <Button isIconOnly radius='full' size='sm' variant='light'>
+                  {/* <VerticalDotsIcon className='text-default-400' /> */}
+                  <Icons.VerticalDotsIcon className='text-default-400' />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu>
+                <DropdownItem>View</DropdownItem>
+                <DropdownItem>Edit</DropdownItem>
+                <DropdownItem>Delete</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          </div>
+        );
+      default:
+        return String(cellValue);
+    }
+  }, []);
+
+  const onRowsPerPageChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
+    setRowsPerPage(Number(e.target.value));
+    setPage(1);
+  }, []);
+
+  const onSearchChange = useCallback((value?: string) => {
+    if (value) {
+      setFilterValue(value);
+      setPage(1);
+    } else setFilterValue('');
+  }, []);
+
+  const topContent = useMemo(() => {
+    return (
+      <div className='flex flex-col gap-4'>
+        <div className='flex justify-between gap-3 items-end'>
+          <Input
+            isClearable
+            classNames={{
+              base: 'w-full sm:max-w-[44%]',
+              inputWrapper: 'border-1',
+            }}
+            placeholder='Search by name...'
+            size='sm'
+            startContent={<Icons.SearchIcon className='text-default-300' />}
+            value={filterValue}
+            variant='bordered'
+            onClear={() => setFilterValue('')}
+            onValueChange={onSearchChange}
+          />
+          <div className='flex gap-3'>
+            <Dropdown>
+              <DropdownTrigger className='hidden sm:flex'>
+                <Button
+                  endContent={<Icons.ChevronDownIcon className='text-small' />}
+                  size='sm'
+                  variant='flat'
+                >
+                  Status
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label='Table Columns'
+                closeOnSelect={false}
+                selectedKeys={statusFilter}
+                selectionMode='multiple'
+                onSelectionChange={setStatusFilter}
+              >
+                {statusOptions.map(status => (
+                  <DropdownItem key={status.value} className='capitalize'>
+                    {capitalize(status.label)}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
+            <Dropdown>
+              <DropdownTrigger className='hidden sm:flex'>
+                <Button
+                  endContent={<Icons.ChevronDownIcon className='text-small' />}
+                  size='sm'
+                  variant='flat'
+                >
+                  Columns
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection
+                aria-label='Table Columns'
+                closeOnSelect={false}
+                selectedKeys={visibleColumns}
+                selectionMode='multiple'
+                onSelectionChange={setVisibleColumns}
+              >
+                {columns.map(column => (
+                  <DropdownItem key={column.value} className='capitalize'>
+                    {capitalize(column.name)}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
+          </div>
+        </div>
+        <div className='flex justify-between items-center'>
+          <span className='text-default-400 text-small'>Total {issues.length} issues</span>
+          <label className='flex items-center text-default-400 text-small'>
+            Rows per page:
+            <select
+              className='bg-transparent outline-none text-default-400 text-small'
+              onChange={onRowsPerPageChange}
+            >
+              <option value='5'>5</option>
+              <option value='10'>10</option>
+              <option value='15'>15</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    );
+  }, [
+    filterValue,
+    statusFilter,
+    visibleColumns,
+    onSearchChange,
+    onRowsPerPageChange,
+    issues.length,
+    hasSearchFilter,
+  ]);
+
+  const bottomContent = useMemo(() => {
+    return (
+      <div className='py-2 px-2 flex justify-between items-center'>
+        <Pagination
+          showControls
+          classNames={{
+            cursor: 'bg-foreground text-background',
+          }}
+          color='default'
+          isDisabled={hasSearchFilter}
+          page={page}
+          total={pages}
+          variant='light'
+          onChange={setPage}
+        />
+        <span className='text-small text-default-400'>
+          {selectedKeys === 'all'
+            ? 'All items selected'
+            : `${selectedKeys.size} of ${items.length} selected`}
+        </span>
+      </div>
+    );
+  }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
+
+  const classNames = useMemo(
+    () => ({
+      wrapper: ['bg-transparent', 'p-1 m-0', 'border'],
+      th: ['bg-transparent', 'text-default-500', 'border-b', 'border-divider'],
+      td: [
+        // changing the rows border radius
+        // first
+        'group-data-[first=true]:first:before:rounded-none',
+        'group-data-[first=true]:last:before:rounded-none',
+        // middle
+        'group-data-[middle=true]:before:rounded-none',
+        // last
+        'group-data-[last=true]:first:before:rounded-none',
+        'group-data-[last=true]:last:before:rounded-none',
+      ],
+    }),
+    []
+  );
 
   return (
-    <div className='space-y-4'>
-      <DataTableToolbar table={table} refreshData={refreshData} />
-      <div className='rounded-md border'>
-        {loading ? (
-          <div className='h-40 flex items-center justify-center'>
-            <Spinner color='default' />
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map(headerGroup => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map(header => {
-                    return (
-                      <TableHead key={header.id} colSpan={header.colSpan}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map(row => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                    {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className='h-24 text-center'>
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+    <Table
+      // isCompact
+      // removeWrapper
+      aria-label='Example table with custom cells, pagination and sorting'
+      bottomContent={bottomContent}
+      bottomContentPlacement='outside'
+      checkboxesProps={{
+        classNames: {
+          wrapper: 'after:bg-foreground after:text-background text-background',
+        },
+      }}
+      classNames={classNames}
+      selectedKeys={selectedKeys}
+      selectionMode='multiple'
+      sortDescriptor={sortDescriptor}
+      topContent={topContent}
+      topContentPlacement='outside'
+      onSelectionChange={setSelectedKeys}
+      onSortChange={setSortDescriptor}
+    >
+      <TableHeader columns={headerColumns}>
+        {column => (
+          <TableColumn
+            key={column.value}
+            align={column.align as 'center' | 'end' | 'start'}
+            allowsSorting={column.sortable}
+          >
+            {column.name}
+          </TableColumn>
         )}
-      </div>
-      <DataTablePagination table={table} />
-    </div>
+      </TableHeader>
+      <TableBody
+        items={items}
+        isLoading={loading}
+        loadingContent={
+          <div className='flex flex-col w-full h-full'>
+            <div className='flex w-full h-14' />
+            <div className='flex w-full h-full items-center justify-center bg-background z-10'>
+              <Spinner />
+            </div>
+          </div>
+        }
+        emptyContent={'No issues found'}
+      >
+        {item => {
+          return (
+            <TableRow key={item.id}>
+              {columnKey => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+            </TableRow>
+          );
+        }}
+      </TableBody>
+    </Table>
   );
 }

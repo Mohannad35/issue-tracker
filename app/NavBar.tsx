@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import { ThemeToggle } from './ThemeModeToggle';
-import { AcmeLogo } from './AcmeLogo';
 import {
   Navbar,
   NavbarBrand,
@@ -12,8 +11,10 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   Button,
-  Link,
 } from '@nextui-org/react';
+import { BugIcon } from 'lucide-react';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function NavBar() {
   const currentPath = usePathname();
@@ -27,17 +28,26 @@ export default function NavBar() {
     <Navbar shouldHideOnScroll isBordered maxWidth='full' className='mb-5'>
       {/* Left side of the navbar */}
       <NavbarBrand>
-        <Link href='/'>
-          <AcmeLogo />
-          <p className='font-bold text-inherit'>ACME</p>
+        <Link href='/' className='inline-flex items-start gap-2'>
+          <BugIcon />
+          <p className='hidden md:flex font-bold text-xl font-satisfy'>ISSUE TRACKER</p>
         </Link>
       </NavbarBrand>
 
       {/* Center of the navbar */}
       <NavbarContent justify='center'>
         {Links.map((link, i) => (
-          <NavbarItem key={i} isActive={currentPath === link.href}>
-            <Link href={link.href} color='foreground'>
+          <NavbarItem key={i} isActive={currentPath === link.href} className='hidden md:flex'>
+            <Link
+              href={link.href}
+              className={cn(
+                {
+                  'text-foreground': currentPath === link.href,
+                  'text-muted-foreground hover:text-foreground': currentPath !== link.href,
+                },
+                'transition-colors duration-200 ease-in-out text-lg'
+              )}
+            >
               {link.name}
             </Link>
           </NavbarItem>
@@ -46,12 +56,12 @@ export default function NavBar() {
 
       {/* Right side of the navbar */}
       <NavbarContent justify='end' className='gap-0'>
-        <NavbarItem className='hidden lg:flex'>
+        <NavbarItem className='hidden 2xs:flex'>
           <Button as={Link} color='default' href='#' variant='light'>
             Login
           </Button>
         </NavbarItem>
-        <NavbarItem>
+        <NavbarItem className='hidden xs:flex'>
           <Button as={Link} color='default' href='#' variant='light'>
             Sign Up
           </Button>

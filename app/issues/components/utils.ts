@@ -7,6 +7,28 @@ import {
   CrossCircledIcon,
   StopwatchIcon,
 } from '@radix-ui/react-icons';
+import { z } from 'zod';
+
+// This type is used to define the shape of our data.
+export type Issue = {
+  id: string;
+  title: string;
+  description: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// You can use a Zod schema here if you want.
+export const issueSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED']),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
 
 export const columns = [
   {
@@ -86,13 +108,3 @@ export const priorities = [
     icon: ArrowUpIcon,
   },
 ];
-
-// This type is used to define the shape of our data.
-export type Issue = {
-  id: string;
-  title: string;
-  description: string;
-  status: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
-  createdAt: Date;
-  updatedAt: Date;
-};

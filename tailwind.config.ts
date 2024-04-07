@@ -12,6 +12,20 @@ const config = {
   ],
   prefix: '',
   theme: {
+    screens: {
+      '3xs': '320px',
+      '2xs': '375px',
+      xs: '425px',
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+      '2xl': '1400px',
+      '3xl': '1536px',
+      tablet: '768px',
+      laptop: '1024px',
+      desktop: '1280px',
+    },
     container: {
       center: true,
       padding: '2rem',
@@ -20,6 +34,11 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        inter: 'var(--font-inter)',
+        satisfy: 'var(--font-satisfy)',
+        poppins: 'var(--font-poppins)',
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

@@ -1,0 +1,21 @@
+import { Inter, Poppins, Satisfy } from 'next/font/google';
+
+export const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+export const satisfy = Satisfy({
+  subsets: ['latin'],
+  variable: '--font-satisfy',
+  display: 'swap',
+  weight: '400',
+});
+
+export const poppins = Poppins({
+  subsets: ['latin'],
+  variable: '--font-poppins',
+  display: 'swap',
+  weight: ['400', '700'],
+});
