@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' className={`${inter.variable} ${satisfy.variable}`}>
-      <body className='font-inter'>
+      <body className='font-inter min-h-svh'>
         <Providers>
           <NavBar />
           <main className='px-5'>{children}</main>

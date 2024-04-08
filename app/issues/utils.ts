@@ -1,13 +1,15 @@
-import {
-  ArrowDownIcon,
-  ArrowRightIcon,
-  ArrowUpIcon,
-  CheckCircledIcon,
-  CircleIcon,
-  CrossCircledIcon,
-  StopwatchIcon,
-} from '@radix-ui/react-icons';
+import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from '@radix-ui/react-icons';
+import { BsFillCircleFill, BsStopwatchFill, BsXCircleFill } from 'react-icons/bs';
+import { FaCheckCircle } from 'react-icons/fa';
 import { z } from 'zod';
+
+// This function is used to fetch data from the server.
+export async function getIssues() {
+  // const headersList = headers();
+  // const baseUrl = `${headersList.get('x-forwarded-proto')}://${headersList.get('host')}`;
+  const issues: Issue[] = await (await fetch('/api/issues', { method: 'GET' })).json();
+  return issues;
+}
 
 // This type is used to define the shape of our data.
 export type Issue = {
@@ -68,43 +70,60 @@ export const columns = [
   },
 ];
 
-export const statusOptions = [
+export const statusOptions: {
+  label: 'Open' | 'In Progress' | 'Done' | 'Canceled';
+  value: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
+  icon: typeof BsFillCircleFill;
+  color: 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning';
+}[] = [
   {
     label: 'Open',
     value: 'OPEN',
-    icon: CircleIcon,
+    icon: BsFillCircleFill,
+    color: 'primary',
   },
   {
     label: 'In Progress',
     value: 'IN_PROGRESS',
-    icon: StopwatchIcon,
+    icon: BsStopwatchFill,
+    color: 'warning',
   },
   {
     label: 'Done',
     value: 'DONE',
-    icon: CheckCircledIcon,
+    icon: FaCheckCircle,
+    color: 'success',
   },
   {
     label: 'Canceled',
     value: 'CANCELLED',
-    icon: CrossCircledIcon,
+    icon: BsXCircleFill,
+    color: 'danger',
   },
 ];
 
-export const priorities = [
+export const priorities: {
+  label: 'Low' | 'Medium' | 'High';
+  value: 'LOW' | 'MEDIUM' | 'HIGH';
+  icon: typeof ArrowDownIcon;
+  color: 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning';
+}[] = [
   {
     label: 'Low',
     value: 'LOW',
     icon: ArrowDownIcon,
+    color: 'secondary',
   },
   {
     label: 'Medium',
     value: 'MEDIUM',
     icon: ArrowRightIcon,
+    color: 'primary',
   },
   {
     label: 'High',
     value: 'HIGH',
     icon: ArrowUpIcon,
+    color: 'success',
   },
 ];
