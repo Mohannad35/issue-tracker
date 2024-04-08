@@ -19,3 +19,14 @@ export const createIssueSchema = z
     priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   })
   .strict();
+
+export const updateIssueSchema = createIssueSchema
+  .partial()
+  .refine(
+    ({ title, description, status, priority }) =>
+      title !== undefined ||
+      description !== undefined ||
+      status !== undefined ||
+      priority !== undefined,
+    'No fields provided for update'
+  );

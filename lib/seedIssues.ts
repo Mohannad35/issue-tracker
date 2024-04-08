@@ -7,7 +7,7 @@ const priority = ['LOW', 'MEDIUM', 'HIGH'];
 const generateIssue = () => {
   return {
     title: faker.lorem.words(5),
-    description: faker.lorem.paragraph(),
+    description: faker.lorem.paragraph(10),
     status: status[faker.number.int({ min: 0, max: status.length - 1 })],
     priority: priority[faker.number.int({ min: 0, max: priority.length - 1 })],
   };

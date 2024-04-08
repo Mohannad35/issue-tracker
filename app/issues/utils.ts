@@ -1,4 +1,5 @@
 import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from '@radix-ui/react-icons';
+import { headers } from 'next/headers';
 import { BsFillCircleFill, BsStopwatchFill, BsXCircleFill } from 'react-icons/bs';
 import { FaCheckCircle } from 'react-icons/fa';
 import { z } from 'zod';
@@ -17,6 +18,8 @@ export type Issue = {
   title: string;
   description: string;
   status: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  slug: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -28,6 +31,7 @@ export const issueSchema = z.object({
   description: z.string(),
   status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
+  slug: z.string(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
@@ -70,12 +74,14 @@ export const columns = [
   },
 ];
 
-export const statusOptions: {
+export interface StatusOption {
   label: 'Open' | 'In Progress' | 'Done' | 'Canceled';
   value: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
   icon: typeof BsFillCircleFill;
   color: 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning';
-}[] = [
+}
+
+export const statusOptions: StatusOption[] = [
   {
     label: 'Open',
     value: 'OPEN',
@@ -102,12 +108,14 @@ export const statusOptions: {
   },
 ];
 
-export const priorities: {
+export interface PriorityOption {
   label: 'Low' | 'Medium' | 'High';
   value: 'LOW' | 'MEDIUM' | 'HIGH';
   icon: typeof ArrowDownIcon;
   color: 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning';
-}[] = [
+}
+
+export const priorities: PriorityOption[] = [
   {
     label: 'Low',
     value: 'LOW',

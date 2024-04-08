@@ -95,7 +95,7 @@ const config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate'), nextui()],
+  plugins: [require('@tailwindcss/typography'), require('tailwindcss-animate'), nextui()],
 } satisfies Config;
 
 export default config;

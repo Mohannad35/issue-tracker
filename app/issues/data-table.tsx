@@ -19,7 +19,6 @@ import {
   Select,
   Selection,
   SelectItem,
-  Skeleton,
   SortDescriptor,
   Spinner,
   Table,
@@ -36,6 +35,10 @@ import { useRouter } from 'next/navigation';
 import { ChangeEvent, Key, useCallback, useEffect, useMemo, useState } from 'react';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { columns, getIssues, Issue, priorities, statusOptions } from './utils';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import CustomChip from '@/components/chip';
 
 const INITIAL_VISIBLE_COLUMNS = [
   'title',
@@ -64,9 +67,8 @@ export default function IssuesTable() {
     direction: 'ascending',
   });
   const [page, setPage] = useState(1);
-  const pages = Math.ceil(issues.length / rowsPerPage);
+  // const pages = Math.ceil(issues.length / rowsPerPage);
   const hasSearchFilter = Boolean(filterValue);
-
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
   useEffect(() => {
@@ -111,96 +113,127 @@ export default function IssuesTable() {
     return columns.filter(column => Array.from(visibleColumns).includes(column.value));
   }, [visibleColumns]);
 
-  const filteredItems = useMemo(() => {
-    let filteredIssues = [...issues];
-    if (hasSearchFilter)
-      filteredIssues = filteredIssues.filter(issue =>
-        issue.title.toLowerCase().includes(filterValue.toLowerCase())
-      );
-    if (statusFilter !== 'all' && Array.from(statusFilter).length !== statusOptions.length)
-      filteredIssues = filteredIssues.filter(issue =>
-        Array.from(statusFilter).includes(issue.status)
-      );
-    return filteredIssues;
-  }, [issues, hasSearchFilter, statusFilter, filterValue]);
-
-  const sortedItems = useMemo(() => {
-    return [...filteredItems].sort((a: Issue, b: Issue) => {
-      const first = a[sortDescriptor.column as keyof Issue] as string | Date;
-      const second = b[sortDescriptor.column as keyof Issue] as string | Date;
-      const cmp = first < second ? -1 : first > second ? 1 : 0;
-      return sortDescriptor.direction === 'descending' ? -cmp : cmp;
-    });
-  }, [sortDescriptor, filteredItems]);
-
   const items = useMemo(() => {
+    return issues
+      .filter(issue => {
+        if (hasSearchFilter && !issue.title.toLowerCase().includes(filterValue.toLowerCase()))
+          return false;
+        if (statusFilter !== 'all' && !Array.from(statusFilter).includes(issue.status))
+          return false;
+        return true;
+      })
+      .sort((a: Issue, b: Issue) => {
+        const first = a[sortDescriptor.column as keyof Issue] as string | Date;
+        const second = b[sortDescriptor.column as keyof Issue] as string | Date;
+        const cmp = first < second ? -1 : first > second ? 1 : 0;
+        return sortDescriptor.direction === 'descending' ? -cmp : cmp;
+      });
+  }, [
+    issues,
+    hasSearchFilter,
+    filterValue,
+    statusFilter,
+    sortDescriptor.column,
+    sortDescriptor.direction,
+  ]);
+
+  const pages = useMemo(() => Math.ceil(items.length / rowsPerPage), [items.length, rowsPerPage]);
+  const pageItems = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    return sortedItems.slice(start, end);
-  }, [page, sortedItems, rowsPerPage]);
+    return items.slice(start, end);
+  }, [page, rowsPerPage, items]);
 
-  const renderCell = useCallback((issue: Issue, columnKey: Key): string | JSX.Element => {
-    const cellValue = issue[columnKey as keyof Issue];
-    switch (columnKey) {
-      case 'title':
-        return (
-          <div className='flex'>
-            <span className='max-w-[300px] truncate font-medium'>{String(cellValue)}</span>
-          </div>
-        );
-      case 'description':
-        return (
-          <div className='flex flex-col'>
-            <span className='max-w-[400px] truncate'>{String(cellValue)}</span>
-          </div>
-        );
-      case 'status':
-        const status = statusOptions.find(status => status.value === cellValue);
-        if (!status) return '';
-        return (
-          <Chip startContent={status.icon && <status.icon />} variant='flat' color={status.color}>
-            {status.label}
-          </Chip>
-        );
-      case 'priority':
-        const priority = priorities.find(priority => priority.value === cellValue);
-        if (!priority) return '';
-        return (
-          <Chip
-            startContent={priority.icon && <priority.icon />}
-            variant='faded'
-            color={priority.color}
-          >
-            {priority.label}
-          </Chip>
-        );
-      case 'createdAt':
-        return (
-          <div className='flex items-center'>
-            <span>{new Date(cellValue).toDateString()}</span>
-          </div>
-        );
-      case 'actions':
-        return (
-          <div className='relative flex justify-end items-center gap-2'>
-            <Dropdown className='bg-background border-1 border-default-200'>
-              <DropdownTrigger>
-                <Button isIconOnly radius='full' size='sm' variant='light'>
-                  <HiDotsHorizontal size={20} className='text-muted-foreground' />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu>
-                <DropdownItem>View</DropdownItem>
-                <DropdownItem>Edit</DropdownItem>
-                <DropdownItem>Delete</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </div>
-        );
+  const onAction = useCallback((key: Key, issue: Issue) => {
+    switch (key) {
+      case 'edit':
+        break;
+      case 'delete':
+        break;
       default:
-        return String(cellValue);
+        break;
     }
   }, []);
+
+  const renderCell = useCallback(
+    (issue: Issue, columnKey: Key): string | JSX.Element => {
+      const cellValue = issue[columnKey as keyof Issue];
+      switch (columnKey) {
+        case 'title':
+          return (
+            <div className='flex'>
+              <span className='max-w-[300px] truncate font-medium'>{String(cellValue)}</span>
+            </div>
+          );
+        case 'description':
+          return (
+            <div className='flex flex-col'>
+              <span className='max-w-[400px] truncate'>{String(cellValue)}</span>
+            </div>
+          );
+        case 'status':
+          const status = statusOptions.find(status => status.value === cellValue);
+          if (!status) return '';
+          return (
+            <CustomChip
+              color={['secondary', 'primary'].includes(status.color) ? undefined : status.color}
+              label={status.label}
+              variant='flat'
+              icon={status.icon && <status.icon />}
+              className={cn({
+                'text-violet-500 bg-violet-500/20': status.color === 'secondary',
+                'text-blue-500 bg-blue-500/20': status.color === 'primary',
+              })}
+            />
+          );
+        case 'priority':
+          const priority = priorities.find(priority => priority.value === cellValue);
+          if (!priority) return '';
+          return (
+            <CustomChip
+              color={['secondary', 'primary'].includes(priority.color) ? undefined : priority.color}
+              label={priority.label}
+              variant='faded'
+              icon={priority.icon && <priority.icon />}
+              className={cn({
+                'text-violet-500': priority.color === 'secondary',
+                'text-blue-500': priority.color === 'primary',
+              })}
+            />
+          );
+        case 'createdAt':
+          return (
+            <div className='flex items-center'>
+              <span>{new Date(cellValue).toDateString()}</span>
+            </div>
+          );
+        case 'actions':
+          return (
+            <div className='relative flex justify-end items-center gap-2'>
+              <Dropdown className='bg-background border-1 border-default-200'>
+                <DropdownTrigger>
+                  <Button isIconOnly radius='full' size='sm' variant='light'>
+                    <HiDotsHorizontal size={20} className='text-muted-foreground' />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu onAction={key => onAction(key, issue)}>
+                  <DropdownItem key={'view'} href={`/issues/${issue.slug}`}>
+                    View
+                  </DropdownItem>
+                  <DropdownItem key={'edit'}>Edit</DropdownItem>
+                  <DropdownItem key={'delete'} color='danger' className='text-danger'>
+                    Delete
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </div>
+          );
+        default:
+          return String(cellValue);
+      }
+    },
+    [onAction]
+  );
 
   const onRowsPerPageChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
     setRowsPerPage(Number(e.target.value));
@@ -352,7 +385,13 @@ export default function IssuesTable() {
           </div>
         </div>
         <div className='flex justify-between items-center'>
-          <span className='text-default-400 text-small'>Total {issues.length} issues</span>
+          <div>
+            <span className='text-muted-foreground text-small'>
+              {issues.length !== items.length
+                ? 'Found ' + items.length + ' of ' + issues.length + ' issues'
+                : 'Total ' + issues.length + ' issues'}
+            </span>
+          </div>
 
           <Select
             label='Rows per page'
@@ -396,22 +435,27 @@ export default function IssuesTable() {
     statusFilter,
     visibleColumns,
     issues.length,
+    items.length,
     rowsPerPage,
     onRowsPerPageChange,
   ]);
 
   const bottomContent = useMemo(() => {
     return (
-      <div className='py-2 px-2 flex justify-between items-center'>
-        <Pagination
-          showControls
-          color='default'
-          variant='light'
-          isDisabled={hasSearchFilter}
-          page={page}
-          total={pages}
-          onChange={setPage}
-        />
+      <div className='flex justify-between items-center min-h-[51px]'>
+        {loading || isLoadingRefresh ? (
+          <Skeleton className='mt-1 ml-4 h-4 w-1/4 rounded-lg' />
+        ) : (
+          <Pagination
+            showControls
+            color='primary'
+            variant='light'
+            page={page}
+            total={pages}
+            onChange={setPage}
+          />
+        )}
+
         <span className='text-small text-default-400'>
           {selectedKeys === 'all'
             ? 'All items selected'
@@ -419,19 +463,14 @@ export default function IssuesTable() {
         </span>
       </div>
     );
-  }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
+  }, [loading, isLoadingRefresh, page, pages, selectedKeys, items.length]);
 
   return (
     <Table
       isStriped
+      isHeaderSticky
       // isCompact
       // removeWrapper
-      aria-label='Issues table showing all issues with sorting and filtering options'
-      checkboxesProps={{
-        classNames: {
-          wrapper: 'after:bg-foreground after:text-background text-background',
-        },
-      }}
       // classNames={classNames}
       selectedKeys={selectedKeys}
       selectionMode='multiple'
@@ -442,6 +481,10 @@ export default function IssuesTable() {
       topContentPlacement='outside'
       onSelectionChange={setSelectedKeys}
       onSortChange={setSortDescriptor}
+      aria-label='Issues table showing all issues with sorting and filtering options'
+      showSelectionCheckboxes
+      checkboxesProps={{ color: 'primary' }}
+      classNames={{ wrapper: 'max-h-[640px]' }}
     >
       <TableHeader columns={headerColumns}>
         {column => (
@@ -455,7 +498,7 @@ export default function IssuesTable() {
         )}
       </TableHeader>
       <TableBody
-        items={items}
+        items={pageItems}
         isLoading={loading || isLoadingRefresh}
         loadingContent={
           <div className='flex flex-col w-full h-full'>
@@ -467,7 +510,9 @@ export default function IssuesTable() {
             </div>
           </div>
         }
-        emptyContent={'No issues found'}
+        emptyContent={
+          <div className='flex flex-col w-full h-[238px] justify-center'>{'No issues found'}</div>
+        }
       >
         {item => {
           return (
