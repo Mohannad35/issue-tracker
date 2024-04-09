@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
@@ -11,9 +10,20 @@ import {
   DropdownItem,
   Button,
 } from '@nextui-org/react';
+import { useEffect, useState } from 'react';
 
 export function ThemeToggle() {
+  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+
+  // useEffect only runs on the client, so now we can safely show the UI
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <Dropdown className='min-w-0 w-fit'>
@@ -24,16 +34,18 @@ export function ThemeToggle() {
           <span className='sr-only'>Toggle theme</span>
         </Button>
       </DropdownTrigger>
-      <DropdownMenu selectionMode='single' selectedKeys={[theme!]}>
-        <DropdownItem key='light' onClick={() => setTheme('light')}>
-          Light
-        </DropdownItem>
-        <DropdownItem key='dark' onClick={() => setTheme('dark')} showDivider>
+      <DropdownMenu
+        selectionMode='single'
+        selectedKeys={[theme!]}
+        disabledKeys={[theme!]}
+        hideSelectedIcon
+        onAction={key => setTheme(String(key))}
+      >
+        <DropdownItem key='light'>Light</DropdownItem>
+        <DropdownItem key='dark' showDivider>
           Dark
         </DropdownItem>
-        <DropdownItem key='system' onClick={() => setTheme('system')}>
-          System
-        </DropdownItem>
+        <DropdownItem key='system'>System</DropdownItem>
       </DropdownMenu>
     </Dropdown>
   );

@@ -1,5 +1,4 @@
 import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from '@radix-ui/react-icons';
-import { headers } from 'next/headers';
 import { BsFillCircleFill, BsStopwatchFill, BsXCircleFill } from 'react-icons/bs';
 import { FaCheckCircle } from 'react-icons/fa';
 import { z } from 'zod';

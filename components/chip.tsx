@@ -1,19 +1,19 @@
-import { Chip, VariantProps } from '@nextui-org/react';
+import { Chip as NextChip, VariantProps } from '@nextui-org/react';
 import { ReactNode } from 'react';
 
 export interface ChipProps extends React.HTMLAttributes<HTMLDivElement> {
-  icon: ReactNode;
-  color: 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning' | undefined;
+  icon?: ReactNode | undefined;
+  color?: 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning' | undefined;
   label: string;
-  variant: 'bordered' | 'dot' | 'faded' | 'flat' | 'light' | 'shadow' | 'solid' | undefined;
+  variant?: 'bordered' | 'dot' | 'faded' | 'flat' | 'light' | 'shadow' | 'solid' | undefined;
 }
 
-const CustomChip = ({ icon, color = 'primary', label, variant = 'flat', ...props }: ChipProps) => {
+const Chip = ({ icon, color = 'primary', label, variant = 'flat', ...props }: ChipProps) => {
   return (
-    <Chip startContent={icon} variant={variant} color={color} {...props}>
+    <NextChip startContent={icon} variant={variant} color={color} {...props}>
       {label}
-    </Chip>
+    </NextChip>
   );
 };
 
-export default CustomChip;
+export default Chip;

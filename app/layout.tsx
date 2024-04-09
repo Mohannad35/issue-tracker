@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en' className={`${inter.variable} ${satisfy.variable}`}>
+    <html lang='en' suppressHydrationWarning className={`${inter.variable} ${satisfy.variable}`}>
       <body className='font-inter min-h-svh'>
         <Providers>
           <NavBar />

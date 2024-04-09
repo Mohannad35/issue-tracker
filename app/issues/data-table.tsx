@@ -1,15 +1,18 @@
 'use client';
 
+import Chip from '@/components/chip';
 import { Icons } from '@/components/icons';
+import { Skeleton } from '@/components/ui/skeleton';
 import { seedIssues } from '@/lib/seedIssues';
+import { cn } from '@/lib/utils';
 import {
   Button,
-  Chip,
   Dropdown,
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
   Input,
+  Link,
   Modal,
   ModalBody,
   ModalContent,
@@ -20,14 +23,13 @@ import {
   Selection,
   SelectItem,
   SortDescriptor,
-  Spinner,
   Table,
   TableBody,
   TableCell,
   TableColumn,
   TableHeader,
   TableRow,
-  useDisclosure,
+  useDisclosure
 } from '@nextui-org/react';
 import { capitalize } from 'lodash';
 import { DatabaseBackupIcon, PlusCircleIcon, RefreshCw, Search } from 'lucide-react';
@@ -35,10 +37,6 @@ import { useRouter } from 'next/navigation';
 import { ChangeEvent, Key, useCallback, useEffect, useMemo, useState } from 'react';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { columns, getIssues, Issue, priorities, statusOptions } from './utils';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import Link from 'next/link';
-import CustomChip from '@/components/chip';
 
 const INITIAL_VISIBLE_COLUMNS = [
   'title',
@@ -156,80 +154,110 @@ export default function IssuesTable() {
   }, []);
 
   const renderCell = useCallback(
-    (issue: Issue, columnKey: Key): string | JSX.Element => {
+    (issue: Issue, columnKey: Key): { content: JSX.Element; textValue: string } => {
       const cellValue = issue[columnKey as keyof Issue];
       switch (columnKey) {
         case 'title':
-          return (
-            <div className='flex'>
-              <span className='max-w-[300px] truncate font-medium'>{String(cellValue)}</span>
-            </div>
-          );
+          return {
+            content: (
+              <div className='flex'>
+                <Link href={`/issues/${issue.slug}`} color='primary' underline='hover'>
+                  <span className='max-w-[300px] truncate font-medium'>{String(cellValue)}</span>
+                </Link>
+              </div>
+            ),
+            textValue: String(cellValue),
+          };
         case 'description':
-          return (
-            <div className='flex flex-col'>
-              <span className='max-w-[400px] truncate'>{String(cellValue)}</span>
-            </div>
-          );
+          return {
+            content: (
+              <div className='flex'>
+                <span className='max-w-[400px] truncate'>{String(cellValue)}</span>
+              </div>
+            ),
+            textValue: String(cellValue),
+          };
         case 'status':
           const status = statusOptions.find(status => status.value === cellValue);
-          if (!status) return '';
-          return (
-            <CustomChip
-              color={['secondary', 'primary'].includes(status.color) ? undefined : status.color}
-              label={status.label}
-              variant='flat'
-              icon={status.icon && <status.icon />}
-              className={cn({
-                'text-violet-500 bg-violet-500/20': status.color === 'secondary',
-                'text-blue-500 bg-blue-500/20': status.color === 'primary',
-              })}
-            />
-          );
+          if (!status)
+            return {
+              content: <Chip color='default' label='Unknown' variant='flat' />,
+              textValue: String(cellValue),
+            };
+          return {
+            content: (
+              <Chip
+                color={['secondary', 'primary'].includes(status.color) ? undefined : status.color}
+                label={status.label}
+                variant='flat'
+                icon={status.icon && <status.icon />}
+                className={cn({
+                  'text-violet-500 bg-violet-500/20': status.color === 'secondary',
+                  'text-blue-500 bg-blue-500/20': status.color === 'primary',
+                })}
+              />
+            ),
+            textValue: String(cellValue),
+          };
         case 'priority':
           const priority = priorities.find(priority => priority.value === cellValue);
-          if (!priority) return '';
-          return (
-            <CustomChip
-              color={['secondary', 'primary'].includes(priority.color) ? undefined : priority.color}
-              label={priority.label}
-              variant='faded'
-              icon={priority.icon && <priority.icon />}
-              className={cn({
-                'text-violet-500': priority.color === 'secondary',
-                'text-blue-500': priority.color === 'primary',
-              })}
-            />
-          );
+          if (!priority)
+            return {
+              content: <Chip color='default' label='Unknown' variant='flat' />,
+              textValue: String(cellValue),
+            };
+          return {
+            content: (
+              <Chip
+                color={
+                  ['secondary', 'primary'].includes(priority.color) ? undefined : priority.color
+                }
+                label={priority.label}
+                variant='faded'
+                icon={priority.icon && <priority.icon />}
+                className={cn({
+                  'text-violet-500': priority.color === 'secondary',
+                  'text-blue-500': priority.color === 'primary',
+                })}
+              />
+            ),
+            textValue: String(cellValue),
+          };
         case 'createdAt':
-          return (
-            <div className='flex items-center'>
-              <span>{new Date(cellValue).toDateString()}</span>
-            </div>
-          );
+          return {
+            content: (
+              <div className='flex items-center'>
+                <span>{new Date(cellValue).toDateString()}</span>
+              </div>
+            ),
+            textValue: String(cellValue),
+          };
         case 'actions':
-          return (
-            <div className='relative flex justify-end items-center gap-2'>
-              <Dropdown className='bg-background border-1 border-default-200'>
-                <DropdownTrigger>
-                  <Button isIconOnly radius='full' size='sm' variant='light'>
-                    <HiDotsHorizontal size={20} className='text-muted-foreground' />
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu onAction={key => onAction(key, issue)}>
-                  <DropdownItem key={'view'} href={`/issues/${issue.slug}`}>
-                    View
-                  </DropdownItem>
-                  <DropdownItem key={'edit'}>Edit</DropdownItem>
-                  <DropdownItem key={'delete'} color='danger' className='text-danger'>
-                    Delete
-                  </DropdownItem>
-                </DropdownMenu>
-              </Dropdown>
-            </div>
-          );
+          return {
+            content: (
+              <div className='relative flex justify-end items-center gap-2'>
+                <Dropdown className='bg-background border-1 border-default-200'>
+                  <DropdownTrigger>
+                    <Button isIconOnly radius='full' size='sm' variant='light'>
+                      <HiDotsHorizontal size={20} className='text-muted-foreground' />
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu onAction={key => onAction(key, issue)}>
+                    <DropdownItem key={'view'} href={`/issues/${issue.slug}`}>
+                      View
+                    </DropdownItem>
+                    <DropdownItem key={'edit'}>Edit</DropdownItem>
+                    <DropdownItem key={'delete'} color='danger' className='text-danger'>
+                      Delete
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+              </div>
+            ),
+            textValue: String(cellValue),
+          };
         default:
-          return String(cellValue);
+          return { content: <div>{String(cellValue)}</div>, textValue: String(cellValue) };
       }
     },
     [onAction]
@@ -492,6 +520,7 @@ export default function IssuesTable() {
             key={column.value}
             align={column.align as 'center' | 'end' | 'start'}
             allowsSorting={column.sortable}
+            textValue={column.value}
           >
             {column.name}
           </TableColumn>
@@ -517,7 +546,10 @@ export default function IssuesTable() {
         {item => {
           return (
             <TableRow key={item.id}>
-              {columnKey => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+              {columnKey => {
+                const { content, textValue } = renderCell(item, columnKey);
+                return <TableCell textValue={textValue}>{content}</TableCell>;
+              }}
             </TableRow>
           );
         }}

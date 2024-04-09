@@ -9,6 +9,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Skeleton } from '@/components/ui/skeleton';
 import { createIssueSchema } from '@/lib/validationSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Card, CardBody, CardFooter, CardHeader, Input } from '@nextui-org/react';
@@ -22,17 +23,15 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 export default function NewIssuesPage() {
-  const [sysTheme, setSysTheme] = useState('light');
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { theme } = useTheme();
-  const router = useRouter();
+  let { theme, systemTheme } = useTheme();
 
   useEffect(() => {
-    const prefersDarkMode =
-      window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setSysTheme(prefersDarkMode ? 'dark' : 'light');
-  }, [theme]);
+    setLoading(false);
+  }, []);
 
   // Define form with zod schema
   const form = useForm<z.infer<typeof createIssueSchema>>({
@@ -102,21 +101,23 @@ export default function NewIssuesPage() {
                     <FormLabel className='text-muted-foreground'>Description</FormLabel>
                     <FormLabel className='text-red-500'>*</FormLabel>
                     <FormControl>
-                      <MDEditor
-                        data-color-mode={
-                          theme === 'system'
-                            ? sysTheme === 'dark'
-                              ? 'dark'
-                              : 'light'
-                            : theme === 'dark'
-                            ? 'dark'
-                            : 'light'
-                        }
-                        textareaProps={{ placeholder: 'Please enter issue description' }}
-                        minHeight={300}
-                        height={300}
-                        {...field}
-                      />
+                      <div>
+                        {loading ? (
+                          <Skeleton className='w-full h-[300px] rounded-lg' />
+                        ) : (
+                          <MDEditor
+                            data-color-mode={
+                              theme === 'system'
+                                ? systemTheme
+                                : (theme as 'dark' | 'light' | undefined)
+                            }
+                            textareaProps={{ placeholder: 'Please enter issue description' }}
+                            minHeight={300}
+                            height={300}
+                            {...field}
+                          />
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

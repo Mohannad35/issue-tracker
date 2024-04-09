@@ -1,12 +1,11 @@
-import prisma from '@/prisma/client';
-import { Issue, priorities, statusOptions } from '../utils';
+import Chip from '@/components/chip';
+import { cn } from '@/lib/utils';
+import { Card, CardBody, CardFooter, CardHeader, Divider } from '@nextui-org/react';
+import delay from 'delay';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { Card, CardHeader, CardBody, CardFooter, Divider, Link, Image } from '@nextui-org/react';
-import CustomChip from '@/components/chip';
-import { cn } from '@/lib/utils';
-import MDEditor from '@uiw/react-md-editor';
 import Markdown from 'react-markdown';
+import { Issue, priorities, statusOptions } from '../utils';
 
 interface Props {
   params: { slug: string };
@@ -20,8 +19,11 @@ const IssuePage = async ({ params: { slug } }: Props) => {
   ).json();
 
   if (!issue) notFound();
+
   const status = statusOptions.find(status => status.value === issue.status);
   const priority = priorities.find(priority => priority.value === issue.priority);
+
+  // await delay(3000);
 
   return (
     <div className='container'>
@@ -32,7 +34,7 @@ const IssuePage = async ({ params: { slug } }: Props) => {
           <div className='flex justify-between w-full'>
             <div className='flex gap-2'>
               {priority && (
-                <CustomChip
+                <Chip
                   color={
                     ['secondary', 'primary'].includes(priority.color) ? undefined : priority.color
                   }
@@ -46,7 +48,7 @@ const IssuePage = async ({ params: { slug } }: Props) => {
                 />
               )}
               {status && (
-                <CustomChip
+                <Chip
                   color={['secondary', 'primary'].includes(status.color) ? undefined : status.color}
                   label={status.label}
                   variant='flat'
