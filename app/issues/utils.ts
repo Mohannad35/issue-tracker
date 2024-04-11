@@ -1,3 +1,4 @@
+import { Issue } from '@prisma/client';
 import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 import { BsFillCircleFill, BsStopwatchFill, BsXCircleFill } from 'react-icons/bs';
 import { FaCheckCircle } from 'react-icons/fa';
@@ -10,18 +11,6 @@ export async function getIssues() {
   const issues: Issue[] = await (await fetch('/api/issues', { method: 'GET' })).json();
   return issues;
 }
-
-// This type is used to define the shape of our data.
-export type Issue = {
-  id: string;
-  title: string;
-  description: string;
-  status: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  slug: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
 
 // You can use a Zod schema here if you want.
 export const issueSchema = z.object({

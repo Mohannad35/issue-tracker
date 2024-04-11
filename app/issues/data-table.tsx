@@ -29,14 +29,15 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-  useDisclosure
+  useDisclosure,
 } from '@nextui-org/react';
 import { capitalize } from 'lodash';
 import { DatabaseBackupIcon, PlusCircleIcon, RefreshCw, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ChangeEvent, Key, useCallback, useEffect, useMemo, useState } from 'react';
 import { HiDotsHorizontal } from 'react-icons/hi';
-import { columns, getIssues, Issue, priorities, statusOptions } from './utils';
+import { columns, getIssues, priorities, statusOptions } from './utils';
+import { Issue } from '@prisma/client';
 
 const INITIAL_VISIBLE_COLUMNS = [
   'title',
