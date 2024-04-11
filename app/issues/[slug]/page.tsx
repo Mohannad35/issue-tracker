@@ -1,11 +1,11 @@
 import Chip from '@/components/chip';
 import { cn } from '@/lib/utils';
-import { Card, CardBody, CardFooter, CardHeader, Divider } from '@nextui-org/react';
-import delay from 'delay';
+import { Button, Card, CardBody, CardFooter, CardHeader, Divider } from '@nextui-org/react';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import Markdown from 'react-markdown';
 import { Issue, priorities, statusOptions } from '../utils';
+import NewIssueToolBar from './toolbar';
 
 interface Props {
   params: { slug: string };
@@ -31,7 +31,7 @@ const IssuePage = async ({ params: { slug } }: Props) => {
         <CardHeader className='flex flex-col items-start gap-2'>
           <p className='text-2xl font-medium'>{issue.title}</p>
 
-          <div className='flex justify-between w-full'>
+          <div className='flex flex-col sm:flex-row gap-2 justify-between w-full'>
             <div className='flex gap-2'>
               {priority && (
                 <Chip
@@ -76,7 +76,10 @@ const IssuePage = async ({ params: { slug } }: Props) => {
           </Card>
         </CardBody>
         <Divider />
-        <CardFooter></CardFooter>
+
+        <CardFooter>
+          <NewIssueToolBar />
+        </CardFooter>
       </Card>
     </div>
   );

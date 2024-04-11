@@ -8,7 +8,7 @@ const IssueLoadingPage = () => {
         <CardHeader className='flex flex-col items-start gap-2'>
           <Skeleton className='w-[30rem] h-5 rounded-full mt-3' />
 
-          <div className='flex justify-between w-full'>
+          <div className='flex flex-col sm:flex-row gap-2 justify-between w-full'>
             <div className='flex gap-2'>
               <Skeleton className='w-[6rem] h-4 rounded-full mt-3' />
               <Skeleton className='w-[6rem] h-4 rounded-full mt-3' />
@@ -32,7 +32,10 @@ const IssueLoadingPage = () => {
         </CardBody>
         <Divider />
         <CardFooter>
-          <Skeleton />
+          <div className='flex flex-col sm:flex-row gap-2 justify-between w-full'>
+            <Skeleton className='w-[7rem] h-5 rounded-full mt-3' />
+            <Skeleton className='w-[7rem] h-5 rounded-full mt-3' />
+          </div>
         </CardFooter>
       </Card>
     </div>
