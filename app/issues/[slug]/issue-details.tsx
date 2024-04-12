@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Card, CardBody, CardHeader, Divider } from '@nextui-org/react';
 import { Issue } from '@prisma/client';
 import Markdown from 'react-markdown';
-import { priorities, statusOptions } from '../utils';
+import { priorities, statusOptions } from '../_components/utils';
 
 const IssueDetails = ({ issue }: { issue: Issue }) => {
   const status = statusOptions.find(status => status.value === issue.status);

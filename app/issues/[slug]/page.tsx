@@ -6,16 +6,18 @@ import DeleteIssueButton from './delete-issue-button';
 import EditIssueButton from './edit-issue-button';
 import IssueDetails from './issue-details';
 
-interface Props {
-  params: { slug: string };
-}
-
-const IssuePage = async ({ params: { slug } }: Props) => {
+// This function is used to fetch issue from the server.
+export async function getIssue(slug: string) {
   const headersList = headers();
   const baseUrl = `${headersList.get('x-forwarded-proto')}://${headersList.get('host')}`;
-  const issue: Issue = await (
-    await fetch(`${baseUrl}/api/issues/${slug}`, { method: 'GET' })
-  ).json();
+  const API = `${baseUrl}/api/issues/${slug}`;
+  return await (await fetch(API)).json();
+}
+
+const IssuePage = async ({ params: { slug } }: { params: { slug: string } }) => {
+  const baseUrl = `${headers().get('x-forwarded-proto')}://${headers().get('host')}`;
+
+  const issue: Issue = await getIssue(slug);
 
   if (!issue) notFound();
 
@@ -27,7 +29,7 @@ const IssuePage = async ({ params: { slug } }: Props) => {
         <CardFooter>
           <div className='flex flex-col sm:flex-row gap-2 justify-between w-full'>
             <EditIssueButton issueSlug={issue.slug} baseUrl={baseUrl} />
-            <DeleteIssueButton issueTitle={issue.title} />
+            <DeleteIssueButton issue={issue} />
           </div>
         </CardFooter>
       </Card>

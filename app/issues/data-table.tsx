@@ -31,13 +31,15 @@ import {
   TableRow,
   useDisclosure,
 } from '@nextui-org/react';
-import { capitalize } from 'lodash';
+import { capitalize, sortBy, filter } from 'lodash';
 import { DatabaseBackupIcon, PlusCircleIcon, RefreshCw, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ChangeEvent, Key, useCallback, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, Key, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HiDotsHorizontal } from 'react-icons/hi';
-import { columns, getIssues, priorities, statusOptions } from './utils';
+import { columns, priorities, statusOptions } from './_components/utils';
 import { Issue } from '@prisma/client';
+import { Id, toast } from 'react-toastify';
+import { useTheme } from 'next-themes';
 
 const INITIAL_VISIBLE_COLUMNS = [
   'title',
@@ -48,10 +50,15 @@ const INITIAL_VISIBLE_COLUMNS = [
   'actions',
 ];
 
-export default function IssuesTable() {
+async function getIssues() {
+  const issues: Issue[] = await (await fetch('/api/issues', { method: 'GET' })).json();
+  return issues;
+}
+
+export default function IssuesTable({ issues }: { issues: Issue[] }) {
   const router = useRouter();
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [issue, setIssue] = useState<Issue | undefined>(undefined);
+  const [issuesN, setIssuesN] = useState<Issue[]>(issues);
   const [isLoadingRefresh, setIsLoadingRefresh] = useState(false);
   const [numberOfSeed, setNumberOfSeed] = useState(10);
   const [isLoadingNew, setIsLoadingNew] = useState(false);
@@ -66,21 +73,21 @@ export default function IssuesTable() {
     direction: 'ascending',
   });
   const [page, setPage] = useState(1);
-  // const pages = Math.ceil(issues.length / rowsPerPage);
   const hasSearchFilter = Boolean(filterValue);
+  let { theme, systemTheme } = useTheme();
+  const toastId = useRef<Id | null>(null);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
-
-  useEffect(() => {
-    getIssues().then(issues => {
-      setIssues(issues);
-      setLoading(false);
-    });
-  }, []);
+  const {
+    isOpen: isOpenDelete,
+    onOpen: onOpenDelete,
+    onOpenChange: onOpenChangeDelete,
+    onClose: onCloseDelete,
+  } = useDisclosure();
 
   const refreshData = useCallback(async () => {
     const issues = await getIssues();
-    setIssues(issues);
-  }, [setIssues]);
+    setIssuesN(issues);
+  }, [setIssuesN]);
 
   const onClickRefresh = useCallback(async () => {
     setIsLoadingRefresh(true);
@@ -113,7 +120,7 @@ export default function IssuesTable() {
   }, [visibleColumns]);
 
   const items = useMemo(() => {
-    return issues
+    return issuesN
       .filter(issue => {
         if (hasSearchFilter && !issue.title.toLowerCase().includes(filterValue.toLowerCase()))
           return false;
@@ -122,13 +129,19 @@ export default function IssuesTable() {
         return true;
       })
       .sort((a: Issue, b: Issue) => {
-        const first = a[sortDescriptor.column as keyof Issue] as string | Date;
-        const second = b[sortDescriptor.column as keyof Issue] as string | Date;
+        if (typeof a[sortDescriptor.column as keyof Issue] === 'string') {
+          const first = (a[sortDescriptor.column as keyof Issue] as string).toLowerCase();
+          const second = (b[sortDescriptor.column as keyof Issue] as string).toLowerCase();
+          const cmp = first < second ? -1 : first > second ? 1 : 0;
+          return sortDescriptor.direction === 'ascending' ? -cmp : cmp;
+        }
+        const first = a[sortDescriptor.column as keyof Issue] as Date;
+        const second = b[sortDescriptor.column as keyof Issue] as Date;
         const cmp = first < second ? -1 : first > second ? 1 : 0;
-        return sortDescriptor.direction === 'descending' ? -cmp : cmp;
+        return sortDescriptor.direction === 'ascending' ? -cmp : cmp;
       });
   }, [
-    issues,
+    issuesN,
     hasSearchFilter,
     filterValue,
     statusFilter,
@@ -143,16 +156,22 @@ export default function IssuesTable() {
     return items.slice(start, end);
   }, [page, rowsPerPage, items]);
 
-  const onAction = useCallback((key: Key, issue: Issue) => {
-    switch (key) {
-      case 'edit':
-        break;
-      case 'delete':
-        break;
-      default:
-        break;
-    }
-  }, []);
+  const onAction = useCallback(
+    (key: Key, issue: Issue) => {
+      switch (key) {
+        case 'edit':
+          router.push(`/issues/${issue.slug}/edit`);
+          break;
+        case 'delete':
+          setIssue(issue);
+          onOpenDelete();
+          break;
+        default:
+          break;
+      }
+    },
+    [onOpenDelete, router]
+  );
 
   const renderCell = useCallback(
     (issue: Issue, columnKey: Key): { content: JSX.Element; textValue: string } => {
@@ -286,7 +305,7 @@ export default function IssuesTable() {
               base: 'w-full sm:max-w-[44%]',
               inputWrapper: 'border-1',
             }}
-            placeholder='Search by name...'
+            placeholder='Search by title...'
             size='md'
             startContent={<Search className='text-default-300' />}
             value={filterValue}
@@ -416,9 +435,9 @@ export default function IssuesTable() {
         <div className='flex justify-between items-center'>
           <div>
             <span className='text-muted-foreground text-small'>
-              {issues.length !== items.length
-                ? 'Found ' + items.length + ' of ' + issues.length + ' issues'
-                : 'Total ' + issues.length + ' issues'}
+              {issuesN.length !== items.length
+                ? 'Found ' + items.length + ' of ' + issuesN.length + ' issues'
+                : 'Total ' + issuesN.length + ' issues'}
             </span>
           </div>
 
@@ -463,7 +482,7 @@ export default function IssuesTable() {
     onPressSeed,
     statusFilter,
     visibleColumns,
-    issues.length,
+    issuesN.length,
     items.length,
     rowsPerPage,
     onRowsPerPageChange,
@@ -472,7 +491,7 @@ export default function IssuesTable() {
   const bottomContent = useMemo(() => {
     return (
       <div className='flex justify-between items-center min-h-[51px]'>
-        {loading || isLoadingRefresh ? (
+        {isLoadingRefresh ? (
           <Skeleton className='mt-1 ml-4 h-4 w-1/4 rounded-lg' />
         ) : (
           <Pagination
@@ -492,69 +511,134 @@ export default function IssuesTable() {
         </span>
       </div>
     );
-  }, [loading, isLoadingRefresh, page, pages, selectedKeys, items.length]);
+  }, [isLoadingRefresh, page, pages, selectedKeys, items.length]);
+
+  const handleDelete = async () => {
+    if (!issue) return;
+    toastId.current = toast('Deleting issue...', {
+      autoClose: false,
+      type: 'default',
+      isLoading: true,
+      theme: theme === 'system' ? systemTheme : (theme as 'dark' | 'light' | undefined),
+    });
+    const response = await fetch(`/api/issues/${issue.slug}`, {
+      method: 'DELETE',
+    });
+    if (response.ok) {
+      const { title }: Issue = await response.json();
+      onCloseDelete();
+      toastId.current &&
+        toast.update(toastId.current, {
+          isLoading: false,
+          type: 'success',
+          render: `${title} deleted`,
+          autoClose: 3000,
+          progress: 0,
+        });
+      // Redirect to the issues page.
+      // setTimeout(async () => await refreshData(), 3000);
+      setTimeout(() => window.location.reload(), 3000);
+    } else if (response.status >= 400 && response.status < 500) {
+      const { message } = await response.json();
+      onCloseDelete();
+      toastId.current &&
+        toast.update(toastId.current, {
+          isLoading: false,
+          type: 'error',
+          render: message || 'An unexpected error occurred. Please try again later.',
+          autoClose: 3000,
+          progress: 0,
+        });
+      setTimeout(() => window.location.reload(), 3000);
+    } else if (response.status >= 500) {
+      onCloseDelete();
+      toastId.current &&
+        toast.update(toastId.current, {
+          type: 'error',
+          render: 'An unexpected error occurred. Please try again later.',
+          autoClose: 3000,
+        });
+      setTimeout(() => window.location.reload(), 3000);
+    }
+  };
 
   return (
-    <Table
-      isStriped
-      isHeaderSticky
-      // isCompact
-      // removeWrapper
-      // classNames={classNames}
-      selectedKeys={selectedKeys}
-      selectionMode='multiple'
-      sortDescriptor={sortDescriptor}
-      bottomContent={bottomContent}
-      bottomContentPlacement='outside'
-      topContent={topContent}
-      topContentPlacement='outside'
-      onSelectionChange={setSelectedKeys}
-      onSortChange={setSortDescriptor}
-      aria-label='Issues table showing all issues with sorting and filtering options'
-      showSelectionCheckboxes
-      checkboxesProps={{ color: 'primary' }}
-      classNames={{ wrapper: 'max-h-[640px]' }}
-    >
-      <TableHeader columns={headerColumns}>
-        {column => (
-          <TableColumn
-            key={column.value}
-            align={column.align as 'center' | 'end' | 'start'}
-            allowsSorting={column.sortable}
-            textValue={column.value}
-          >
-            {column.name}
-          </TableColumn>
-        )}
-      </TableHeader>
-      <TableBody
-        items={pageItems}
-        isLoading={loading || isLoadingRefresh}
-        loadingContent={
-          <div className='flex flex-col w-full h-full'>
-            <div className='flex w-full h-unit-18' />
-            <div className='flex flex-col w-full h-full justify-around bg-neutral-900 z-10 px-5'>
-              {[...new Array(rowsPerPage)].map((_, index) => (
-                <Skeleton key={index} className='h-3 w-full rounded-lg' />
-              ))}
-            </div>
-          </div>
-        }
-        emptyContent={
-          <div className='flex flex-col w-full h-[238px] justify-center'>{'No issues found'}</div>
-        }
+    <>
+      <Table
+        isStriped
+        isHeaderSticky
+        selectedKeys={selectedKeys}
+        selectionMode='multiple'
+        sortDescriptor={sortDescriptor}
+        bottomContent={bottomContent}
+        bottomContentPlacement='outside'
+        topContent={topContent}
+        topContentPlacement='outside'
+        onSelectionChange={setSelectedKeys}
+        onSortChange={setSortDescriptor}
+        aria-label='Issues table showing all issues with sorting and filtering options'
+        showSelectionCheckboxes
+        checkboxesProps={{ color: 'primary' }}
+        classNames={{ wrapper: 'max-h-[640px]' }}
       >
-        {item => {
-          return (
-            <TableRow key={item.id}>
-              {columnKey => {
-                const { content, textValue } = renderCell(item, columnKey);
-                return <TableCell textValue={textValue}>{content}</TableCell>;
-              }}
-            </TableRow>
-          );
-        }}
-      </TableBody>
-    </Table>
+        <TableHeader columns={headerColumns}>
+          {column => (
+            <TableColumn
+              key={column.value}
+              align={column.align as 'center' | 'end' | 'start'}
+              allowsSorting={column.sortable}
+              textValue={column.value}
+            >
+              {column.name}
+            </TableColumn>
+          )}
+        </TableHeader>
+        <TableBody
+          items={pageItems}
+          isLoading={isLoadingRefresh}
+          loadingContent={
+            <div className='flex flex-col w-full h-full'>
+              <div className='flex w-full h-unit-18' />
+              <div className='flex flex-col w-full h-full justify-around bg-neutral-900 z-10 px-5'>
+                {[...new Array(rowsPerPage)].map((_, index) => (
+                  <Skeleton key={index} className='h-3 w-full rounded-lg' />
+                ))}
+              </div>
+            </div>
+          }
+          emptyContent={
+            <div className='flex flex-col w-full h-[238px] justify-center'>{'No issues found'}</div>
+          }
+        >
+          {item => {
+            return (
+              <TableRow key={item.id}>
+                {columnKey => {
+                  const { content, textValue } = renderCell(item, columnKey);
+                  return <TableCell textValue={textValue}>{content}</TableCell>;
+                }}
+              </TableRow>
+            );
+          }}
+        </TableBody>
+      </Table>
+
+      <Modal isOpen={isOpenDelete} onOpenChange={onOpenChangeDelete}>
+        <ModalContent>
+          <ModalHeader className='flex flex-col gap-1'>Delete {issue?.title}?</ModalHeader>
+          <ModalBody>
+            <p>This Action can&apos;t be undone.</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button color='default' variant='light' onPress={onCloseDelete}>
+              Close
+            </Button>
+            <Button color='danger' onPress={handleDelete}>
+              Delete
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
   );
 }

@@ -1,16 +1,7 @@
-import { Issue } from '@prisma/client';
 import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from '@radix-ui/react-icons';
 import { BsFillCircleFill, BsStopwatchFill, BsXCircleFill } from 'react-icons/bs';
 import { FaCheckCircle } from 'react-icons/fa';
 import { z } from 'zod';
-
-// This function is used to fetch data from the server.
-export async function getIssues() {
-  // const headersList = headers();
-  // const baseUrl = `${headersList.get('x-forwarded-proto')}://${headersList.get('host')}`;
-  const issues: Issue[] = await (await fetch('/api/issues', { method: 'GET' })).json();
-  return issues;
-}
 
 // You can use a Zod schema here if you want.
 export const issueSchema = z.object({

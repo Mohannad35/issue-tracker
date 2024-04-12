@@ -1,0 +1,24 @@
+import { Issue } from '@prisma/client';
+import { notFound } from 'next/navigation';
+import EditIssueForm from './edit-issue-form';
+import { headers } from 'next/headers';
+
+// This function is used to fetch issue from the server.
+export async function getIssue(slug: string) {
+  const headersList = headers();
+  const baseUrl = `${headersList.get('x-forwarded-proto')}://${headersList.get('host')}`;
+  const API = `${baseUrl}/api/issues/${slug}`;
+  return await (await fetch(API)).json();
+}
+
+export default async function EditIssuePage({ params: { slug } }: { params: { slug: string } }) {
+  const issue: Issue = await getIssue(slug);
+
+  if (!issue) notFound();
+
+  return (
+    <div className='container flex justify-center flex-col w-[50rem] space-y-5'>
+      <EditIssueForm issue={issue} />
+    </div>
+  );
+}

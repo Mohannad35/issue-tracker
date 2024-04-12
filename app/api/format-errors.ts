@@ -5,7 +5,7 @@ export function formatErrors(error: ZodError) {
   const fieldErrors = error.flatten().fieldErrors;
   return {
     errors: formErrors.length > 0 ? formErrors : fieldErrors,
-    messege:
+    message:
       formErrors.length > 0
         ? formErrors.join(', ')
         : Object.values(fieldErrors)
