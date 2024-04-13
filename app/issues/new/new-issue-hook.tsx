@@ -47,7 +47,7 @@ const NewIssueHook = () => {
     const res = await fetch('/api/issues', {
       body: JSON.stringify(values),
       method: 'POST',
-      cache: 'no-cache',
+      cache: 'no-store',
       headers: { 'Content-Type': 'application/json' },
     });
     if (res.ok) {
@@ -60,7 +60,10 @@ const NewIssueHook = () => {
           autoClose: 3000,
           progress: 0,
         });
-      setTimeout(() => router.push(`/issues/${slug}`), 3000);
+      setTimeout(() => {
+        router.push(`/issues/${slug}`);
+        router.refresh();
+      }, 3000);
     } else if (res.status >= 400 && res.status < 500) {
       const { message } = await res.json();
       toastId.current &&

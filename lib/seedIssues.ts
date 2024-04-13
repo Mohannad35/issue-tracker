@@ -14,7 +14,7 @@ const generateIssue = () => {
 };
 
 export async function seedIssues(url: string, noOfIssues: number = 10): Promise<void> {
-  const res = await fetch(url, { method: 'DELETE' });
+  const res = await fetch(url, { method: 'DELETE', cache: 'no-store' });
   console.log(await res.json());
 
   // Generate 10 issues
@@ -28,6 +28,7 @@ export async function seedIssues(url: string, noOfIssues: number = 10): Promise<
     }
     const res = await fetch(url, {
       method: 'POST',
+      cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
       },

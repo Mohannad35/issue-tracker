@@ -3,10 +3,12 @@ import IssuesTable from './data-table';
 import { Issue } from '@prisma/client';
 
 // This function is used to fetch issues from the server.
-export async function getIssues() {
+async function getIssues() {
   const headersList = headers();
   const baseUrl = `${headersList.get('x-forwarded-proto')}://${headersList.get('host')}`;
-  const issues: Issue[] = await (await fetch(`${baseUrl}/api/issues`, { method: 'GET' })).json();
+  const issues: Issue[] = await (
+    await fetch(`${baseUrl}/api/issues`, { method: 'GET', cache: 'no-store' })
+  ).json();
   return issues;
 }
 
@@ -21,3 +23,5 @@ const IssuesPage = async () => {
 };
 
 export default IssuesPage;
+
+export const dynamic = 'force-dynamic';

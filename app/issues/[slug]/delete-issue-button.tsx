@@ -31,6 +31,7 @@ const DeleteIssueButton = ({ issue }: { issue: Issue }) => {
     });
     const response = await fetch(`/api/issues/${issue.slug}`, {
       method: 'DELETE',
+      cache: 'no-store',
     });
     if (response.ok) {
       const { title }: Issue = await response.json();

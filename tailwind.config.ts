@@ -37,7 +37,6 @@ const config = {
       fontFamily: {
         inter: 'var(--font-inter)',
         satisfy: 'var(--font-satisfy)',
-        poppins: 'var(--font-poppins)',
       },
       colors: {
         border: 'hsl(var(--border))',

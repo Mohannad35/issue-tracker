@@ -37,7 +37,9 @@ const INITIAL_VISIBLE_COLUMNS = [
 ];
 
 async function getIssues() {
-  const issues: Issue[] = await (await fetch('/api/issues', { method: 'GET' })).json();
+  const issues: Issue[] = await (
+    await fetch('/api/issues', { method: 'GET', cache: 'no-store' })
+  ).json();
   return issues;
 }
 

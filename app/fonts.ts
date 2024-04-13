@@ -1,4 +1,4 @@
-import { Inter, Poppins, Satisfy } from 'next/font/google';
+import { Inter, Satisfy } from 'next/font/google';
 
 export const inter = Inter({
   subsets: ['latin'],
@@ -11,11 +11,4 @@ export const satisfy = Satisfy({
   variable: '--font-satisfy',
   display: 'swap',
   weight: '400',
-});
-
-export const poppins = Poppins({
-  subsets: ['latin'],
-  variable: '--font-poppins',
-  display: 'swap',
-  weight: ['400', '700'],
 });

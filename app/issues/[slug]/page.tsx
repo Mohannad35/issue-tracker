@@ -7,11 +7,11 @@ import EditIssueButton from './edit-issue-button';
 import IssueDetails from './issue-details';
 
 // This function is used to fetch issue from the server.
-export async function getIssue(slug: string) {
+async function getIssue(slug: string) {
   const headersList = headers();
   const baseUrl = `${headersList.get('x-forwarded-proto')}://${headersList.get('host')}`;
   const API = `${baseUrl}/api/issues/${slug}`;
-  return await (await fetch(API)).json();
+  return await (await fetch(API, { cache: 'no-store' })).json();
 }
 
 const IssuePage = async ({ params: { slug } }: { params: { slug: string } }) => {

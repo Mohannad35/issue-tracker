@@ -47,7 +47,7 @@ const EditIssueHook = (issue: Issue) => {
     const res = await fetch(`/api/issues/${issue.slug}`, {
       body: JSON.stringify(values),
       method: 'PATCH',
-      cache: 'no-cache',
+      cache: 'no-store',
       headers: { 'Content-Type': 'application/json' },
     });
     if (res.ok) {
