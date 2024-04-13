@@ -17,7 +17,7 @@ export default async function EditIssuePage({ params: { slug } }: { params: { sl
   if (!issue) notFound();
 
   return (
-    <div className='container flex justify-center flex-col w-[50rem] space-y-5'>
+    <div className='container flex flex-col justify-center gap-5 max-w-[50rem]'>
       <EditIssueForm issue={issue} />
     </div>
   );

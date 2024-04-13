@@ -15,15 +15,15 @@ export default function NewIssuePage() {
   const { form, onSubmit, loading, theme, systemTheme, isLoading } = NewIssueHook();
 
   return (
-    <div className='container flex justify-center flex-col w-[50rem] space-y-5'>
+    <div className='container flex flex-col justify-center max-w-[50rem] gap-5'>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+        <form onSubmit={form.handleSubmit(onSubmit)} className='gap-8'>
           <Card className='p-5'>
             <CardHeader>
               <p className='text-3xl font-medium'>New Issue</p>
             </CardHeader>
 
-            <CardBody className='space-y-5'>
+            <CardBody className='gap-5'>
               <TitleFormField formControl={form.control} />
               <DescriptionFormField
                 formControl={form.control}

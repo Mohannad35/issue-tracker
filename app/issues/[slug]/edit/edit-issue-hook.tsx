@@ -28,6 +28,7 @@ const EditIssueHook = (issue: Issue) => {
       title: issue?.title,
       description: issue?.description,
       priority: issue?.priority,
+      status: issue?.status,
     },
     shouldFocusError: false,
   });
