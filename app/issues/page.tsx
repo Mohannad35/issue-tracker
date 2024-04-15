@@ -1,6 +1,11 @@
 import { headers } from 'next/headers';
 import IssuesTable from './data-table';
 import { Issue } from '@prisma/client';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Issues',
+};
 
 // This function is used to fetch issues from the server.
 async function getIssues() {
@@ -16,7 +21,7 @@ const IssuesPage = async () => {
   const issues = await getIssues();
 
   return (
-    <div className='container flex flex-col w-full space-y-5 pb-5'>
+    <div className='flex flex-col w-full space-y-5 pb-5'>
       <IssuesTable issues={issues} />
     </div>
   );

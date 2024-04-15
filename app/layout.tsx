@@ -19,7 +19,7 @@ export default function RootLayout({
       <body className='font-inter min-h-svh'>
         <Providers>
           <NavBar />
-          <main className='px-5'>{children}</main>
+          <main className='container'>{children}</main>
         </Providers>
       </body>
     </html>

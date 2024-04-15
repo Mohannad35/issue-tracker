@@ -29,13 +29,13 @@ const DescriptionFormField = ({
       control={formControl}
       name='description'
       render={({ field }) => (
-        <FormItem>
+        <FormItem className='h-full'>
           <FormLabel className='text-muted-foreground'>Description</FormLabel>
           <FormLabel className='text-red-500'>*</FormLabel>
           <FormControl>
             <div>
               {loading ? (
-                <Skeleton className='w-full h-[300px] rounded-lg' />
+                <Skeleton className='w-full h-[400px] rounded-lg' />
               ) : (
                 <MDEditor
                   data-color-mode={
@@ -43,7 +43,8 @@ const DescriptionFormField = ({
                   }
                   textareaProps={{ placeholder: 'Please enter issue description' }}
                   minHeight={300}
-                  height={300}
+                  height={400}
+                  maxHeight={500}
                   {...field}
                 />
               )}

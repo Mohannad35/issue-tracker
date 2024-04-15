@@ -3,7 +3,7 @@ import { Card, CardBody, CardFooter, CardHeader, Divider } from '@nextui-org/rea
 
 const IssueLoadingPage = () => {
   return (
-    <div className='container'>
+    <div>
       <Card className='bg-transparent' fullWidth shadow='none'>
         <CardHeader className='flex flex-col items-start gap-2'>
           <Skeleton className='w-[30rem] h-5 rounded-full mt-3' />

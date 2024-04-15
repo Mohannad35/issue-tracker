@@ -1,9 +1,9 @@
-import Image from "next/image";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Issue Tracker',
+};
 
 export default function Home() {
-  return (
-    <div>
-      Hello World!
-    </div>
-  );
+  return <div>Hello World!</div>;
 }

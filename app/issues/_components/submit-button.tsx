@@ -13,14 +13,13 @@ const SubmitButton = ({
 }) => {
   return (
     <Button
-      fullWidth
       type='submit'
       color='primary'
       variant='solid'
       startContent={Icon}
       isLoading={isLoading}
       spinnerPlacement='end'
-      className='text-base font-semibold'
+      className='text-base font-semibold max-sm:w-full'
     >
       {label}
     </Button>

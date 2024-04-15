@@ -18,8 +18,8 @@ const EditIssueForm = ({ issue }: { issue: Issue }) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className='gap-8'>
-        <Card className='p-5'>
+      <form onSubmit={form.handleSubmit(onSubmit)} className='w-full gap-8'>
+        <Card className='bg-transparent'>
           <CardHeader>
             <p className='text-3xl font-medium'>Update Issue</p>
           </CardHeader>
@@ -32,7 +32,7 @@ const EditIssueForm = ({ issue }: { issue: Issue }) => {
               systemTheme={systemTheme}
               theme={theme}
             />
-            <div className='flex gap-4 justify-between w-full max-sm:flex-col'>
+            <div className='flex gap-8 justify-between w-full max-sm:flex-col'>
               <div className='w-full'>
                 <PriorityFormField formControl={form.control} />
               </div>

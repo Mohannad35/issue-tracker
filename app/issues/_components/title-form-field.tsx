@@ -22,7 +22,7 @@ const TitleFormField = ({
       control={formControl}
       name='title'
       render={({ field }) => (
-        <FormItem>
+        <FormItem className='w-full max-w-[40rem] sm:w-1/2'>
           <FormControl>
             <Input label='Title' variant='underlined' isRequired {...field} />
           </FormControl>

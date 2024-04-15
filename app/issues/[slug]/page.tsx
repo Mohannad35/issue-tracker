@@ -5,6 +5,11 @@ import { notFound } from 'next/navigation';
 import DeleteIssueButton from './delete-issue-button';
 import EditIssueButton from './edit-issue-button';
 import IssueDetails from './issue-details';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Issue Details',
+};
 
 // This function is used to fetch issue from the server.
 async function getIssue(slug: string) {
@@ -22,7 +27,7 @@ const IssuePage = async ({ params: { slug } }: { params: { slug: string } }) => 
   if (!issue) notFound();
 
   return (
-    <div className='container'>
+    <div>
       <Card className='bg-transparent' fullWidth shadow='none'>
         <IssueDetails issue={issue} />
         <Divider />

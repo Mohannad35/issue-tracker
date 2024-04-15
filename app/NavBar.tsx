@@ -15,6 +15,7 @@ import {
 import { BugIcon } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { signIn } from 'next-auth/react';
 
 export default function NavBar() {
   const currentPath = usePathname();
@@ -57,7 +58,7 @@ export default function NavBar() {
       {/* Right side of the navbar */}
       <NavbarContent justify='end' className='gap-0'>
         <NavbarItem className='hidden 2xs:flex'>
-          <Button as={Link} color='default' href='#' variant='light'>
+          <Button color='default' variant='light' onClick={() => signIn()}>
             Login
           </Button>
         </NavbarItem>

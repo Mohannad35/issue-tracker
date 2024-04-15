@@ -2,6 +2,11 @@ import { Issue } from '@prisma/client';
 import { notFound } from 'next/navigation';
 import EditIssueForm from './edit-issue-form';
 import { headers } from 'next/headers';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Edit Issue',
+};
 
 // This function is used to fetch issue from the server.
 async function getIssue(slug: string) {
@@ -17,7 +22,7 @@ export default async function EditIssuePage({ params: { slug } }: { params: { sl
   if (!issue) notFound();
 
   return (
-    <div className='container flex flex-col justify-center gap-5 max-w-[50rem]'>
+    <div className='flex w-full justify-center'>
       <EditIssueForm issue={issue} />
     </div>
   );
