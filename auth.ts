@@ -1,7 +1,8 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
+import GitHub from 'next-auth/providers/github';
 import { PrismaAdapter } from '@auth/prisma-adapter';
-import prisma from './prisma/client';
+import prisma from '@/prisma/client';
 
 if (!process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID) {
   throw new Error('AUTH_GOOGLE_ID is not set');
@@ -18,6 +19,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID,
       clientSecret: process.env.NEXT_PUBLIC_AUTH_GOOGLE_SECRET,
+    }),
+    GitHub({
+      clientId: process.env.NEXT_PUBLIC_AUTH_GITHUB_ID,
+      clientSecret: process.env.NEXT_PUBLIC_AUTH_GITHUB_SECRET,
     }),
   ],
   session: { strategy: 'jwt' },

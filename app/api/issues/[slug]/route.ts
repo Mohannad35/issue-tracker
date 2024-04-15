@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import slugify from 'slugify';
 import { nanoid } from 'nanoid';
 import { error } from 'console';
-import { formatErrors } from '../../format-errors';
+import { formatErrors } from '../../_utils/format-errors';
 
 export async function GET(
   request: NextRequest,

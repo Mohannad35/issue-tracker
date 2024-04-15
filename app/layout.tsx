@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import NavBar from './NavBar';
-import { Providers } from './providers';
-import { inter, satisfy } from './fonts';
+import NavBar from './_components/NavBar';
+import { Providers } from './_components/providers';
+import { inter, satisfy } from './_components/fonts';
 
 export const metadata: Metadata = {
   title: 'Issue Tracker',

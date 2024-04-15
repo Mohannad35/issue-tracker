@@ -11,6 +11,7 @@ import {
   Button,
 } from '@nextui-org/react';
 import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
@@ -22,7 +23,7 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    return null;
+    return <Skeleton className='w-[2.5rem] h-[2.5rem] rounded-medium' />;
   }
 
   return (

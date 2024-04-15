@@ -1,7 +1,7 @@
 import { createIssueSchema } from '@/lib/validationSchemas';
 import prisma from '@/prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-import { formatErrors } from '../format-errors';
+import { formatErrors } from '../_utils/format-errors';
 import slugify from 'slugify';
 import { nanoid } from 'nanoid';
 

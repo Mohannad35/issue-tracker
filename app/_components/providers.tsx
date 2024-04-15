@@ -1,7 +1,8 @@
 'use client';
 
-import { ThemeProvider } from '@/components/theme-provider';
+import { ThemeProvider } from '@/app/_components/theme-provider';
 import { NextUIProvider } from '@nextui-org/react';
+import { SessionProvider } from 'next-auth/react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -21,7 +22,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           pauseOnHover
           limit={5}
         />
-        {children}
+        <SessionProvider>{children}</SessionProvider>
       </NextUIProvider>
     </ThemeProvider>
   );
