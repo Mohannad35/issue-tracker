@@ -32,31 +32,42 @@ export async function PATCH(
   request: NextRequest,
   { params: { slug } }: { params: { slug: string } }
 ) {
+  // Check if the user is authenticated.
   const session = await auth();
   if (!session) return NextResponse.json({}, { status: 401 });
 
+  // Check if the issue exists.
   const issue = await prisma.issue.findUnique({ where: { slug } });
   if (!issue) return NextResponse.json({ message: 'Issue not found' }, { status: 404 });
+
   const body = await request.json();
-  const validationResult: any = updateIssueSchema.safeParse(body);
   // Validate the request body.
+  const validationResult = updateIssueSchema.safeParse(body);
   if (!validationResult.success) {
     return NextResponse.json(formatErrors(validationResult.error), { status: 400 });
   }
-  if (validationResult.data.title) {
-    let newSlug = slugify(validationResult.data.title, { lower: true, strict: true, trim: true });
+
+  const { title, description, status, priority, assigneeId } = body;
+  // Check if the assigneeId is provided and if the user exists.
+  if (assigneeId) {
+    const user = await prisma.user.findUnique({ where: { id: assigneeId } });
+    if (!user) return NextResponse.json({ message: 'User not found' }, { status: 404 });
+  }
+
+  // Generate a new slug if the title is provided.
+  if (title) {
+    let newSlug = slugify(title, { lower: true, strict: true, trim: true });
     while (await prisma.issue.findUnique({ where: { slug: newSlug } })) {
       newSlug += `-${nanoid(10)}`;
     }
     const updatedIssue = await prisma.issue.update({
       where: { slug },
-      data: { ...validationResult.data, slug: newSlug },
+      data: { ...body, slug: newSlug },
     });
     return NextResponse.json(updatedIssue);
   }
-  const updatedIssue = await prisma.issue.update({
-    where: { slug },
-    data: validationResult.data,
-  });
+
+  // Update the issue.
+  const updatedIssue = await prisma.issue.update({ where: { slug }, data: body });
   return NextResponse.json(updatedIssue);
 }

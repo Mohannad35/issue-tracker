@@ -1,20 +1,25 @@
 'use client';
 
+import { Skeleton } from '@/components/ui/skeleton';
 import { Autocomplete, AutocompleteItem, User as UserComponent } from '@nextui-org/react';
 import { User } from '@prisma/client';
+import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
 
 const AssigningIssue = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const {
+    data: users,
+    error,
+    isLoading,
+  } = useQuery<User[]>({
+    queryKey: ['users'],
+    queryFn: () => fetch('/api/users').then(res => res.json()),
+    staleTime: 1000 * 60, // 1 minute
+    retry: 3,
+  });
 
-  useEffect(() => {
-    async function getUsers() {
-      const res: User[] = await (await fetch('/api/users')).json();
-      setUsers(res);
-    }
-    getUsers();
-  }, []);
+  if (isLoading) return <Skeleton className='w-[21.5rem] h-[2.5rem] rounded-medium' />;
+  else if (error) return null;
 
   return (
     <Autocomplete
