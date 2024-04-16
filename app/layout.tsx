@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import '@radix-ui/themes/styles.css';
 import './globals.css';
 import NavBar from './_components/NavBar';
 import { Providers } from './_components/providers';

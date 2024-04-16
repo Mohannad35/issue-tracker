@@ -1,10 +1,21 @@
 'use client';
 
-import { Autocomplete, AutocompleteItem, Avatar, User as UserComponent } from '@nextui-org/react';
+import { Autocomplete, AutocompleteItem, User as UserComponent } from '@nextui-org/react';
 import { User } from '@prisma/client';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
-const AssigningIssue = ({ users }: { users: User[] }) => {
+const AssigningIssue = () => {
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    async function getUsers() {
+      const res: User[] = await (await fetch('/api/users')).json();
+      setUsers(res);
+    }
+    getUsers();
+  }, []);
+
   return (
     <Autocomplete
       defaultItems={users}
