@@ -21,10 +21,12 @@ export default async function NavBar() {
           <p className='hidden md:flex font-bold text-xl font-satisfy'>ISSUE TRACKER</p>
         </Link>
       </NavbarBrand>
+
       {/* Center of the navbar */}
       <NavbarContent justify='center'>
         <NavBarLinks />
       </NavbarContent>
+
       {/* Right side of the navbar */}
       <NavbarContent justify='end'>
         <NavbarItem className='hidden 2xs:flex'>

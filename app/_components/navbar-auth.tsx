@@ -29,7 +29,7 @@ const NavBarAuth = () => {
         break;
 
       case 'signout':
-        await signOut();
+        await signOut({ callbackUrl: '/' });
         break;
 
       default:

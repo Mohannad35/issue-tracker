@@ -12,17 +12,28 @@ import {
   useDisclosure,
 } from '@nextui-org/react';
 import { Issue } from '@prisma/client';
+import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { Key, useCallback, useRef, useState } from 'react';
+import { Key, useCallback, useEffect, useRef, useState } from 'react';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { Id, toast } from 'react-toastify';
 import { priorities, statusOptions } from './_components/utils';
 
 const RenderCellHook = () => {
   const router = useRouter();
+  const { status } = useSession();
+  const [actions, setActions] = useState(() => {
+    if (status === 'authenticated') {
+      return [
+        { key: 'view', label: 'View' },
+        { key: 'edit', label: 'Edit' },
+        { key: 'delete', label: 'Delete' },
+      ];
+    }
+    return [{ key: 'view', label: 'View' }];
+  });
   const [issue, setIssue] = useState<Issue | undefined>(undefined);
-
   let { theme, systemTheme } = useTheme();
   const toastId = useRef<Id | null>(null);
   const {
@@ -31,6 +42,16 @@ const RenderCellHook = () => {
     onOpenChange: onOpenChangeDelete,
     onClose: onCloseDelete,
   } = useDisclosure();
+
+  useEffect(() => {
+    if (status === 'authenticated')
+      setActions([
+        { key: 'view', label: 'View' },
+        { key: 'edit', label: 'Edit' },
+        { key: 'delete', label: 'Delete' },
+      ]);
+    else setActions([{ key: 'view', label: 'View' }]);
+  }, [status]);
 
   const handleDelete = async () => {
     if (!issue) return;
@@ -85,6 +106,9 @@ const RenderCellHook = () => {
   const onAction = useCallback(
     (key: Key, issue: Issue) => {
       switch (key) {
+        case 'view':
+          router.push(`/issues/${issue.slug}`);
+          break;
         case 'edit':
           router.push(`/issues/${issue.slug}/edit`);
           break;
@@ -181,21 +205,23 @@ const RenderCellHook = () => {
         case 'actions':
           return {
             content: (
-              <div className='relative flex justify-end items-center gap-2'>
-                <Dropdown className='bg-background border-1 border-default-200'>
+              <div className=''>
+                <Dropdown className=''>
                   <DropdownTrigger>
                     <Button isIconOnly radius='full' size='sm' variant='light'>
                       <HiDotsHorizontal size={20} className='text-muted-foreground' />
                     </Button>
                   </DropdownTrigger>
-                  <DropdownMenu onAction={key => onAction(key, issue)}>
-                    <DropdownItem key={'view'} href={`/issues/${issue.slug}`}>
-                      View
-                    </DropdownItem>
-                    <DropdownItem key={'edit'}>Edit</DropdownItem>
-                    <DropdownItem key={'delete'} color='danger' className='text-danger'>
-                      Delete
-                    </DropdownItem>
+                  <DropdownMenu items={actions} onAction={key => onAction(key, issue)}>
+                    {({ key, label }) => (
+                      <DropdownItem
+                        key={key}
+                        color={key === 'delete' ? 'danger' : 'default'}
+                        className={key === 'delete' ? 'text-danger' : ''}
+                      >
+                        {label}
+                      </DropdownItem>
+                    )}
                   </DropdownMenu>
                 </Dropdown>
               </div>
@@ -206,7 +232,7 @@ const RenderCellHook = () => {
           return { content: <div>{String(cellValue)}</div>, textValue: String(cellValue) };
       }
     },
-    [onAction]
+    [actions, onAction]
   );
 
   return { issue, isOpenDelete, renderCell, handleDelete, onOpenChangeDelete, onCloseDelete };

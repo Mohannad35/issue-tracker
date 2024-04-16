@@ -6,6 +6,7 @@ import DeleteIssueButton from './delete-issue-button';
 import EditIssueButton from './edit-issue-button';
 import IssueDetails from './issue-details';
 import { Metadata } from 'next';
+import { auth } from '@/auth';
 
 export const metadata: Metadata = {
   title: 'Issue Details',
@@ -20,11 +21,11 @@ async function getIssue(slug: string) {
 }
 
 const IssuePage = async ({ params: { slug } }: { params: { slug: string } }) => {
-  const baseUrl = `${headers().get('x-forwarded-proto')}://${headers().get('host')}`;
-
   const issue: Issue = await getIssue(slug);
-
+  const baseUrl = `${headers().get('x-forwarded-proto')}://${headers().get('host')}`;
   if (!issue) notFound();
+
+  const session = await auth();
 
   return (
     <div>
@@ -32,10 +33,12 @@ const IssuePage = async ({ params: { slug } }: { params: { slug: string } }) => 
         <IssueDetails issue={issue} />
         <Divider />
         <CardFooter>
-          <div className='flex flex-col sm:flex-row gap-2 justify-between w-full'>
-            <EditIssueButton issueSlug={issue.slug} baseUrl={baseUrl} />
-            <DeleteIssueButton issue={issue} />
-          </div>
+          {session && (
+            <div className='flex flex-col sm:flex-row gap-2 justify-between w-full'>
+              <EditIssueButton issueSlug={issue.slug} baseUrl={baseUrl} />
+              <DeleteIssueButton issue={issue} />
+            </div>
+          )}
         </CardFooter>
       </Card>
     </div>

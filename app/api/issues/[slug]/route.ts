@@ -1,9 +1,9 @@
-import { createIssueSchema, updateIssueSchema } from '@/lib/validationSchemas';
+import { auth } from '@/auth';
+import { updateIssueSchema } from '@/lib/validationSchemas';
 import prisma from '@/prisma/client';
+import { nanoid } from 'nanoid';
 import { NextRequest, NextResponse } from 'next/server';
 import slugify from 'slugify';
-import { nanoid } from 'nanoid';
-import { error } from 'console';
 import { formatErrors } from '../../_utils/format-errors';
 
 export async function GET(
@@ -18,6 +18,9 @@ export async function DELETE(
   request: NextRequest,
   { params: { slug } }: { params: { slug: string } }
 ) {
+  const session = await auth();
+  if (!session) return NextResponse.json({}, { status: 401 });
+
   const issue = await prisma.issue.findUnique({ where: { slug } });
   if (!issue) return NextResponse.json({ message: 'Issue not found' }, { status: 404 });
   // Check if the user is authenticated and has the necessary permissions.
@@ -29,6 +32,9 @@ export async function PATCH(
   request: NextRequest,
   { params: { slug } }: { params: { slug: string } }
 ) {
+  const session = await auth();
+  if (!session) return NextResponse.json({}, { status: 401 });
+
   const issue = await prisma.issue.findUnique({ where: { slug } });
   if (!issue) return NextResponse.json({ message: 'Issue not found' }, { status: 404 });
   const body = await request.json();

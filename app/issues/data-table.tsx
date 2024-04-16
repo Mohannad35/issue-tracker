@@ -25,7 +25,6 @@ import TopContentHook from './top-content';
 
 export default function IssuesTable({ issues }: { issues: Issue[] }) {
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
-
   const { issue, isOpenDelete, renderCell, handleDelete, onOpenChangeDelete, onCloseDelete } =
     RenderCellHook();
   const {
