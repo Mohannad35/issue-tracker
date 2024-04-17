@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 // This function is used to fetch issue from the server.
 async function getIssue(slug: string, baseUrl: string) {
   const API = `${baseUrl}/api/issues/${slug}`;
-  return await (await fetch(API, { cache: 'no-store' })).json();
+  return await (await fetch(API)).json();
 }
 
 const IssuePage = async ({ params: { slug } }: { params: { slug: string } }) => {
@@ -39,7 +39,7 @@ const IssuePage = async ({ params: { slug } }: { params: { slug: string } }) => 
             gap='8px'
             justify='between'
           >
-            <AssigningIssue />
+            <AssigningIssue issue={issue} />
             <Flex direction={{ initial: 'column', xs: 'row' }} gap='8px' justify='end'>
               <EditIssueButton issueSlug={issue.slug} baseUrl={baseUrl} />
               <DeleteIssueButton issue={issue} />

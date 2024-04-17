@@ -197,7 +197,7 @@ const RenderCellHook = () => {
           return {
             content: (
               <div className='flex items-center'>
-                <span>{new Date(cellValue).toDateString()}</span>
+                <span>{cellValue ? new Date(cellValue).toDateString() : ''}</span>
               </div>
             ),
             textValue: String(cellValue),
