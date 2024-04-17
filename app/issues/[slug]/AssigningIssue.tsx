@@ -1,7 +1,7 @@
 'use client';
 
 import { Skeleton } from '@/components/ui/skeleton';
-import { Autocomplete, AutocompleteItem, Avatar, User as UserComponent } from '@nextui-org/react';
+import { Autocomplete, AutocompleteItem, User as UserComponent } from '@nextui-org/react';
 import { Issue, User } from '@prisma/client';
 import { Flex } from '@radix-ui/themes';
 import { useQuery } from '@tanstack/react-query';
@@ -13,22 +13,14 @@ import { toast } from 'react-toastify';
 const AssigningIssue = ({ issue: { slug, assigneeId } }: { issue: Issue }) => {
   let { theme, systemTheme } = useTheme();
   theme = theme === 'system' ? systemTheme : (theme as 'dark' | 'light' | undefined);
-  const {
-    data: users,
-    error,
-    isLoading,
-  } = useQuery<User[]>({
-    queryKey: ['users'],
-    queryFn: () => fetch('/api/users').then(res => res.json()),
-    staleTime: 1000 * 60, // 1 minute
-    retry: 3,
-  });
+  const { data: users, error, isLoading } = useUsers();
   const [user, setUser] = useState(users?.find(user => user.id === assigneeId));
+  const [assignLoading, setAssignLoading] = useState(false);
+
   useEffect(() => {
     setUser(users?.find(user => user.id === assigneeId));
   }, [assigneeId, users]);
 
-  const [assignLoading, setAssignLoading] = useState(false);
   if (isLoading) return <Skeleton className='w-[21.5rem] h-[2.5rem] rounded-medium' />;
   else if (error) return null;
 
@@ -97,5 +89,13 @@ const AssigningIssue = ({ issue: { slug, assigneeId } }: { issue: Issue }) => {
     </Flex>
   );
 };
+
+const useUsers = () =>
+  useQuery<User[]>({
+    queryKey: ['users'],
+    queryFn: () => fetch('/api/users').then(res => res.json()),
+    staleTime: 1000 * 60, // 1 minute
+    retry: 3,
+  });
 
 export default AssigningIssue;
