@@ -22,6 +22,7 @@ import { columns } from './_components/utils';
 import BottomContentHook from './bottom-content';
 import RenderCellHook from './render-cell-callback';
 import TopContentHook from './top-content';
+import { Box, Flex } from '@radix-ui/themes';
 
 export default function IssuesTable({ issues }: { issues: Issue[] }) {
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
@@ -52,10 +53,29 @@ export default function IssuesTable({ issues }: { issues: Issue[] }) {
     return columns.filter(column => Array.from(visibleColumns).includes(column.value));
   }, [visibleColumns]);
 
+  const loadingContent = (
+    <Flex direction={'column'} width={'100%'} height={'100%'}>
+      <Flex
+        direction={'column'}
+        width={'100%'}
+        justify={'between'}
+        mt={'65px'}
+        px={'20px'}
+        pt={'10px'}
+        pb={'20px'}
+        gap={'28px'}
+        className='bg-neutral-900 z-10'
+      >
+        {[...new Array(rowsPerPage)].map((_, index) => (
+          <Skeleton key={index} className='h-[20px] w-full rounded-lg' />
+        ))}
+      </Flex>
+    </Flex>
+  );
+
   return (
     <>
       <Table
-        isStriped
         isHeaderSticky
         selectedKeys={selectedKeys}
         selectionMode='multiple'
@@ -86,19 +106,8 @@ export default function IssuesTable({ issues }: { issues: Issue[] }) {
         <TableBody
           items={pageItems}
           isLoading={isLoadingRefresh}
-          loadingContent={
-            <div className='flex flex-col w-full h-full'>
-              <div className='flex w-full h-unit-18' />
-              <div className='flex flex-col w-full h-full justify-around bg-neutral-900 z-10 px-5'>
-                {[...new Array(rowsPerPage)].map((_, index) => (
-                  <Skeleton key={index} className='h-3 w-full rounded-lg' />
-                ))}
-              </div>
-            </div>
-          }
-          emptyContent={
-            <div className='flex flex-col w-full h-[238px] justify-center'>{'No issues found'}</div>
-          }
+          loadingContent={loadingContent}
+          emptyContent={'No issues found'}
         >
           {item => {
             return (

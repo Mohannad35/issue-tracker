@@ -26,6 +26,8 @@ import { DatabaseBackupIcon, PlusCircleIcon, RefreshCw, Search } from 'lucide-re
 import { useRouter } from 'next/navigation';
 import { ChangeEvent, useCallback, useMemo, useState } from 'react';
 import { columns, statusOptions } from './_components/utils';
+import { useSession } from 'next-auth/react';
+import { Flex } from '@radix-ui/themes';
 
 const INITIAL_VISIBLE_COLUMNS = [
   'title',
@@ -45,6 +47,7 @@ async function getIssues() {
 
 const TopContentHook = (issues: Issue[]) => {
   const router = useRouter();
+  const { status } = useSession();
   const [issuesN, setIssuesN] = useState<Issue[]>(issues);
   const [filterValue, setFilterValue] = useState('');
   const [isLoadingNew, setIsLoadingNew] = useState(false);
@@ -143,142 +146,157 @@ const TopContentHook = (issues: Issue[]) => {
   const topContent = useMemo(() => {
     return (
       <div className='flex flex-col gap-4'>
-        <div className='flex justify-between gap-3 items-end'>
-          <Input
-            isClearable
-            classNames={{
-              base: 'w-full sm:max-w-[44%]',
-              inputWrapper: 'border-1',
-            }}
-            placeholder='Search by title...'
-            size='md'
-            startContent={<Search className='text-default-300' />}
-            value={filterValue}
-            variant='bordered'
-            onClear={() => setFilterValue('')}
-            onValueChange={onSearchChange}
-          />
-          <div className='flex gap-3'>
-            <Button
-              isIconOnly
-              isLoading={isLoadingRefresh}
-              spinner={<RefreshCw size={20} className='animate-spin' />}
-              onClick={onClickRefresh}
-              variant='bordered'
+        <Modal
+          isOpen={isOpenSeed}
+          onOpenChange={onOpenChangeSeed}
+          classNames={{ base: 'border border-danger' }}
+        >
+          <ModalContent>
+            <ModalHeader className='flex flex-col gap-1'>
+              Are you sure you want to seed issues?
+            </ModalHeader>
+            <ModalBody>
+              <p>This action is irreversible and will delete all data in issue database.</p>
+              <Input
+                // className='border border-destructive'
+                type='number'
+                value={numberOfSeed.toString()}
+                label='Number of issues to seed'
+                placeholder='Enter seed number'
+                onValueChange={(value: string) => setNumberOfSeed(parseInt(value))}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button color='default' variant='light' onPress={handleCloseSeed}>
+                Close
+              </Button>
+              <Button color='danger' onPress={onPressSeed}>
+                Seed
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        <Flex
+          direction={{ initial: 'column', md: 'row' }}
+          justify={'between'}
+          gap={'12px'}
+          align={'end'}
+        >
+          <Flex justify={'start'} width={'100%'}>
+            <Input
+              isClearable
+              classNames={{
+                base: 'w-full sm:max-w-[36rem]',
+                inputWrapper: 'border-1',
+              }}
+              placeholder='Search by title...'
               size='md'
-            >
-              <RefreshCw size={20} />
-              <span className='sr-only'>Refresh table data</span>
-            </Button>
-
-            <Button
-              color='default'
+              startContent={<Search className='text-default-300' />}
+              value={filterValue}
               variant='bordered'
-              startContent={<PlusCircleIcon size={20} />}
-              isLoading={isLoadingNew}
-              onPress={onPressNew}
-              className='max-w-40'
-              size='md'
-            >
-              New Issue
-            </Button>
-
-            <Button
-              color='default'
-              variant='bordered'
-              startContent={<DatabaseBackupIcon size={20} />}
-              isLoading={isLoadingSeed}
-              onPress={onOpenSeed}
-              size='md'
-            >
-              Seed Issues
-            </Button>
-
-            <Modal
-              isOpen={isOpenSeed}
-              onOpenChange={onOpenChangeSeed}
-              classNames={{ base: 'border border-danger' }}
-            >
-              <ModalContent>
-                <ModalHeader className='flex flex-col gap-1'>
-                  Are you sure you want to seed issues?
-                </ModalHeader>
-                <ModalBody>
-                  <p>This action is irreversible and will delete all data in issue database.</p>
-                  <Input
-                    // className='border border-destructive'
-                    type='number'
-                    value={numberOfSeed.toString()}
-                    label='Number of issues to seed'
-                    placeholder='Enter seed number'
-                    onValueChange={(value: string) => setNumberOfSeed(parseInt(value))}
-                  />
-                </ModalBody>
-                <ModalFooter>
-                  <Button color='default' variant='light' onPress={handleCloseSeed}>
-                    Close
-                  </Button>
-                  <Button color='danger' onPress={onPressSeed}>
-                    Seed
-                  </Button>
-                </ModalFooter>
-              </ModalContent>
-            </Modal>
-
-            <Dropdown>
-              <DropdownTrigger className='hidden sm:flex'>
-                <Button
-                  endContent={<Icons.ChevronDownIcon className='text-small' />}
-                  size='md'
-                  variant='bordered'
-                >
-                  Status
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                disallowEmptySelection
-                aria-label='Table Columns'
-                closeOnSelect={false}
-                selectedKeys={statusFilter}
-                selectionMode='multiple'
-                onSelectionChange={setStatusFilter}
+              onClear={() => setFilterValue('')}
+              onValueChange={onSearchChange}
+            />
+          </Flex>
+          <Flex direction={{ initial: 'column', sm: 'row' }} gap={'12px'}>
+            <Flex direction={{ initial: 'column', xs: 'row' }} gap={'12px'}>
+              <Button
+                isIconOnly
+                isLoading={isLoadingRefresh}
+                spinner={<RefreshCw size={20} className='animate-spin' />}
+                onClick={onClickRefresh}
+                variant='bordered'
+                size='md'
               >
-                {statusOptions.map(status => (
-                  <DropdownItem key={status.value} className='capitalize'>
-                    {capitalize(status.label)}
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-            <Dropdown>
-              <DropdownTrigger className='hidden sm:flex'>
-                <Button
-                  endContent={<Icons.ChevronDownIcon className='text-small' />}
-                  size='md'
-                  variant='bordered'
+                <RefreshCw size={20} />
+                <span className='sr-only'>Refresh table data</span>
+              </Button>
+
+              {status === 'authenticated' && (
+                <>
+                  <Button
+                    color='default'
+                    variant='bordered'
+                    startContent={<PlusCircleIcon size={20} />}
+                    isLoading={isLoadingNew}
+                    onPress={onPressNew}
+                    className='max-w-40'
+                    size='md'
+                  >
+                    New Issue
+                  </Button>
+
+                  <Button
+                    color='default'
+                    variant='bordered'
+                    startContent={<DatabaseBackupIcon size={20} />}
+                    isLoading={isLoadingSeed}
+                    onPress={onOpenSeed}
+                    size='md'
+                  >
+                    Seed Issues
+                  </Button>
+                </>
+              )}
+            </Flex>
+
+            <Flex direction={{ initial: 'column', xs: 'row' }} gap={'12px'} justify={'end'}>
+              <Dropdown>
+                <DropdownTrigger className='hidden sm:flex'>
+                  <Button
+                    endContent={<Icons.ChevronDownIcon className='text-small' />}
+                    size='md'
+                    variant='bordered'
+                  >
+                    Status
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu
+                  disallowEmptySelection
+                  aria-label='Table Columns'
+                  closeOnSelect={false}
+                  selectedKeys={statusFilter}
+                  selectionMode='multiple'
+                  onSelectionChange={setStatusFilter}
                 >
-                  Columns
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
-                disallowEmptySelection
-                aria-label='Table Columns'
-                closeOnSelect={false}
-                selectedKeys={visibleColumns}
-                selectionMode='multiple'
-                onSelectionChange={setVisibleColumns}
-              >
-                {columns
-                  .filter(column => column.name !== '')
-                  .map(column => (
-                    <DropdownItem key={column.value} className='capitalize'>
-                      {capitalize(column.name)}
+                  {statusOptions.map(status => (
+                    <DropdownItem key={status.value} className='capitalize'>
+                      {capitalize(status.label)}
                     </DropdownItem>
                   ))}
-              </DropdownMenu>
-            </Dropdown>
-          </div>
-        </div>
+                </DropdownMenu>
+              </Dropdown>
+              <Dropdown>
+                <DropdownTrigger className='hidden sm:flex'>
+                  <Button
+                    endContent={<Icons.ChevronDownIcon className='text-small' />}
+                    size='md'
+                    variant='bordered'
+                  >
+                    Columns
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu
+                  disallowEmptySelection
+                  aria-label='Table Columns'
+                  closeOnSelect={false}
+                  selectedKeys={visibleColumns}
+                  selectionMode='multiple'
+                  onSelectionChange={setVisibleColumns}
+                >
+                  {columns
+                    .filter(column => column.name !== '')
+                    .map(column => (
+                      <DropdownItem key={column.value} className='capitalize'>
+                        {capitalize(column.name)}
+                      </DropdownItem>
+                    ))}
+                </DropdownMenu>
+              </Dropdown>
+            </Flex>
+          </Flex>
+        </Flex>
         <div className='flex justify-between items-center'>
           <div>
             <span className='text-muted-foreground text-small'>
@@ -318,6 +336,7 @@ const TopContentHook = (issues: Issue[]) => {
     onSearchChange,
     isLoadingRefresh,
     onClickRefresh,
+    status,
     isLoadingNew,
     onPressNew,
     isLoadingSeed,
