@@ -1,5 +1,18 @@
 import { z } from 'zod';
 
+// const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
+//   if (issue.code === z.ZodIssueCode.invalid_type) {
+//     if (issue.expected === 'string') {
+//       return { message: 'bad type!' };
+//     }
+//   }
+//   if (issue.code === z.ZodIssueCode.custom) {
+//     return { message: `less-than-${(issue.params || {}).minimum}` };
+//   }
+//   return { message: ctx.defaultError };
+// };
+// z.setErrorMap(customErrorMap);
+
 const title = z
   .string({
     invalid_type_error: 'Title must be a string',
@@ -46,3 +59,9 @@ export const updateIssueSchema = z
       assigneeId !== undefined,
     'No fields provided for update'
   );
+
+export const issuesQuerySchema = z.object({
+  status: z.array(z.enum(['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED'])).optional(),
+  sortBy: z.enum(['title', 'description', 'status', 'priority', 'createdAt']).optional(),
+  direction: z.enum(['asc', 'desc', 'ascending', 'descending']).optional(),
+});

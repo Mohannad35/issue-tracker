@@ -1,10 +1,10 @@
-import { createIssueSchema } from '@/lib/validationSchemas';
-import prisma from '@/prisma/client';
-import { NextRequest, NextResponse } from 'next/server';
-import { formatErrors } from '../_utils/format-errors';
-import slugify from 'slugify';
-import { nanoid } from 'nanoid';
 import { auth } from '@/auth';
+import { createIssueSchema, issuesQuerySchema } from '@/lib/validationSchemas';
+import prisma from '@/prisma/client';
+import { nanoid } from 'nanoid';
+import { NextRequest, NextResponse } from 'next/server';
+import slugify from 'slugify';
+import { formatErrors } from '../_utils/format-errors';
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -21,7 +21,21 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const issues = await prisma.issue.findMany({ orderBy: { createdAt: 'desc' } });
+  const searchParams = request.nextUrl.searchParams;
+  const validationResult = issuesQuerySchema.safeParse({
+    status: searchParams.get('status')?.split(','),
+    sortBy: searchParams.get('sortBy') || 'createdAt',
+    direction: searchParams.get('direction') || 'desc',
+  });
+
+  if (!validationResult.success)
+    return NextResponse.json(formatErrors(validationResult.error), { status: 400 });
+
+  const { status, sortBy, direction } = validationResult.data;
+  const issues = await prisma.issue.findMany({
+    where: { status: { in: status } },
+    orderBy: { [sortBy!]: direction?.replace(/ending$/, '') },
+  });
   return NextResponse.json(issues);
 }
 
