@@ -65,7 +65,7 @@ export const statusOptions: StatusOption[] = [
     label: 'Open',
     value: 'OPEN',
     icon: BsFillCircleFill,
-    color: 'primary',
+    color: 'secondary',
   },
   {
     label: 'In Progress',
@@ -99,13 +99,13 @@ export const priorities: PriorityOption[] = [
     label: 'Low',
     value: 'LOW',
     icon: ArrowDownIcon,
-    color: 'secondary',
+    color: 'warning',
   },
   {
     label: 'Medium',
     value: 'MEDIUM',
     icon: ArrowRightIcon,
-    color: 'primary',
+    color: 'secondary',
   },
   {
     label: 'High',

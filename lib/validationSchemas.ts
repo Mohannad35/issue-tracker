@@ -1,3 +1,4 @@
+import { capitalize } from 'lodash';
 import { z } from 'zod';
 
 // const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
@@ -19,7 +20,8 @@ const title = z
     required_error: 'Title is required',
   })
   .min(1, "Title shouldn't be empty")
-  .max(255, "Title shouldn't exceed 255 characters");
+  .max(255, "Title shouldn't exceed 255 characters")
+  .transform(value => capitalize(value));
 
 const description = z
   .string({
@@ -64,4 +66,9 @@ export const issuesQuerySchema = z.object({
   status: z.array(z.enum(['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED'])).optional(),
   sortBy: z.enum(['title', 'description', 'status', 'priority', 'createdAt']).optional(),
   direction: z.enum(['asc', 'desc', 'ascending', 'descending']).optional(),
+  search: z
+    .string()
+    .nullable()
+    .transform(value => (value === '' || value === null ? undefined : value))
+    .optional(),
 });

@@ -1,288 +1,64 @@
 'use client';
 
-import { Icons } from '@/components/icons';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@nextui-org/button';
-import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@nextui-org/dropdown';
-import { Input } from '@nextui-org/input';
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@nextui-org/modal';
-import { Pagination } from '@nextui-org/pagination';
-import { Select, SelectItem } from '@nextui-org/select';
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@nextui-org/table';
 import { Issue } from '@prisma/client';
-import { Flex } from '@radix-ui/themes';
+import { Text } from '@radix-ui/themes';
 import { useQuery } from '@tanstack/react-query';
-import { capitalize } from 'lodash';
-import { DatabaseBackupIcon, PlusCircleIcon, RefreshCw, Search } from 'lucide-react';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
-import { columns, statusOptions } from './_components/utils';
+import BottomContent from './data-table-bottom-content';
 import DataTableHook from './data-table-hook';
-import { useEffect } from 'react';
+import TopContent from './data-table-top-content';
 
 export default function IssuesTable() {
   const searchParams = useSearchParams();
   const { data: issues, isSuccess, error, isLoading, refetch } = useIssues(searchParams);
   const {
-    hasSearchFilter,
+    page,
+    issue,
+    status,
     filterValue,
     statusFilter,
     sortDescriptor,
     rowsPerPage,
-    page,
-    isOpenSeed,
-    onOpenChangeSeed,
     numberOfSeed,
+    selectedKeys,
+    visibleColumns,
+    headerColumns,
+    loadingContent,
+    isOpenSeed,
+    isLoadingRefresh,
+    isLoadingSeed,
+    isLoadingNew,
+    isOpenDelete,
+    onOpenChangeSeed,
     setNumberOfSeed,
     handleCloseSeed,
     onPressSeed,
     setFilterValue,
     onSearchChange,
     onClickRefresh,
-    isLoadingRefresh,
-    isLoadingSeed,
-    isLoadingNew,
     onPressNew,
-    isOpenDelete,
     onOpenChangeDelete,
     onCloseDelete,
     handleDelete,
-    selectedKeys,
     setSelectedKeys,
     onOpenSeed,
     setPage,
     onRowsPerPageChange,
-    visibleColumns,
     setVisibleColumns,
     renderCell,
-    loadingContent,
-    headerColumns,
     setStatusFilter,
-    status,
-    setSortDescriptor,
-    issue,
     handleSortChange,
-  } = DataTableHook(refetch, searchParams);
+  } = DataTableHook(refetch);
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return loadingContent;
   else if (error) return <p>Error: {error.message}</p>;
   else if (isSuccess) {
-    const items = issues;
-    const pages = Math.ceil(items.length / rowsPerPage);
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    const pageItems = items.slice(start, end);
-
-    const topContent = (
-      <div className='flex flex-col gap-4'>
-        <Modal
-          isOpen={isOpenSeed}
-          onOpenChange={onOpenChangeSeed}
-          classNames={{ base: 'border border-danger' }}
-        >
-          <ModalContent>
-            <ModalHeader className='flex flex-col gap-1'>
-              Are you sure you want to seed issues?
-            </ModalHeader>
-            <ModalBody>
-              <p>This action is irreversible and will delete all data in issue database.</p>
-              <Input
-                // className='border border-destructive'
-                type='number'
-                value={numberOfSeed.toString()}
-                label='Number of issues to seed'
-                placeholder='Enter seed number'
-                onValueChange={(value: string) => setNumberOfSeed(parseInt(value))}
-              />
-            </ModalBody>
-            <ModalFooter>
-              <Button color='default' variant='light' onPress={handleCloseSeed}>
-                Close
-              </Button>
-              <Button color='danger' onPress={onPressSeed}>
-                Seed
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-
-        <Flex
-          direction={{ initial: 'column', md: 'row' }}
-          justify={'between'}
-          gap={'12px'}
-          align={'end'}
-        >
-          <Flex justify={'start'} width={'100%'}>
-            <Input
-              isClearable
-              classNames={{
-                base: 'w-full sm:max-w-[36rem]',
-                inputWrapper: 'border-1',
-              }}
-              placeholder='Search by title...'
-              size='md'
-              startContent={<Search className='text-default-300' />}
-              value={filterValue}
-              variant='bordered'
-              onClear={() => setFilterValue('')}
-              onValueChange={onSearchChange}
-            />
-          </Flex>
-          <Flex direction={{ initial: 'column', sm: 'row' }} gap={'12px'}>
-            <Flex direction={{ initial: 'column', xs: 'row' }} gap={'12px'}>
-              <Button
-                isIconOnly
-                isLoading={isLoadingRefresh}
-                spinner={<RefreshCw size={20} className='animate-spin' />}
-                onClick={onClickRefresh}
-                variant='bordered'
-                size='md'
-              >
-                <RefreshCw size={20} />
-                <span className='sr-only'>Refresh table data</span>
-              </Button>
-
-              {status === 'authenticated' && (
-                <>
-                  <Button
-                    color='default'
-                    variant='bordered'
-                    startContent={<PlusCircleIcon size={20} />}
-                    isLoading={isLoadingNew}
-                    onPress={onPressNew}
-                    className='max-w-40'
-                    size='md'
-                  >
-                    New Issue
-                  </Button>
-
-                  <Button
-                    color='default'
-                    variant='bordered'
-                    startContent={<DatabaseBackupIcon size={20} />}
-                    isLoading={isLoadingSeed}
-                    onPress={onOpenSeed}
-                    size='md'
-                  >
-                    Seed Issues
-                  </Button>
-                </>
-              )}
-            </Flex>
-
-            <Flex direction={{ initial: 'column', xs: 'row' }} gap={'12px'} justify={'end'}>
-              <Dropdown>
-                <DropdownTrigger className='hidden sm:flex'>
-                  <Button
-                    endContent={<Icons.ChevronDownIcon className='text-small' />}
-                    size='md'
-                    variant='bordered'
-                  >
-                    Status
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  disallowEmptySelection
-                  aria-label='Table Columns'
-                  closeOnSelect={false}
-                  selectedKeys={statusFilter}
-                  selectionMode='multiple'
-                  onSelectionChange={setStatusFilter}
-                >
-                  {statusOptions.map(status => (
-                    <DropdownItem key={status.value} className='capitalize'>
-                      {capitalize(status.label)}
-                    </DropdownItem>
-                  ))}
-                </DropdownMenu>
-              </Dropdown>
-
-              <Dropdown>
-                <DropdownTrigger className='hidden sm:flex'>
-                  <Button
-                    endContent={<Icons.ChevronDownIcon className='text-small' />}
-                    size='md'
-                    variant='bordered'
-                  >
-                    Columns
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  disallowEmptySelection
-                  aria-label='Table Columns'
-                  closeOnSelect={false}
-                  selectedKeys={visibleColumns}
-                  selectionMode='multiple'
-                  onSelectionChange={setVisibleColumns}
-                >
-                  {columns
-                    .filter(column => column.name !== '')
-                    .map(column => (
-                      <DropdownItem key={column.value} className='capitalize'>
-                        {capitalize(column.name)}
-                      </DropdownItem>
-                    ))}
-                </DropdownMenu>
-              </Dropdown>
-            </Flex>
-          </Flex>
-        </Flex>
-        <div className='flex justify-between items-center'>
-          <div>
-            <span className='text-muted-foreground text-small'>
-              {issues.length !== items.length
-                ? 'Found ' + items.length + ' of ' + issues.length + ' issues'
-                : 'Total ' + issues.length + ' issues'}
-            </span>
-          </div>
-
-          <Select
-            label='Rows per page'
-            labelPlacement='outside-left'
-            classNames={{
-              base: 'max-w-[163px] items-center',
-              label: 'text-default-400',
-              mainWrapper: 'max-w-[70px]',
-              trigger: 'max-w-[70px]',
-            }}
-            value={rowsPerPage.toString()}
-            defaultSelectedKeys={rowsPerPage.toString()}
-            disallowEmptySelection
-            onChange={onRowsPerPageChange}
-            variant='bordered'
-            size='sm'
-          >
-            {[5, 10, 15, 20, 25, 30].map(rows => (
-              <SelectItem key={rows.toString()} value={rows.toString()}>
-                {rows.toString()}
-              </SelectItem>
-            ))}
-          </Select>
-        </div>
-      </div>
-    );
-
-    const bottomContent = (
-      <div className='flex justify-between items-center min-h-[51px]'>
-        {isLoadingRefresh ? (
-          <Skeleton className='mt-1 ml-4 h-4 w-1/4 rounded-lg' />
-        ) : (
-          <Pagination
-            showControls
-            color='primary'
-            variant='light'
-            page={page}
-            total={pages}
-            onChange={setPage}
-          />
-        )}
-
-        <span className='text-small text-default-400'>
-          {selectedKeys === 'all'
-            ? 'All items selected'
-            : `${selectedKeys.size} of ${items.length} selected`}
-        </span>
-      </div>
-    );
+    const pageItems = issues.slice(start, end);
 
     return (
       <>
@@ -297,8 +73,43 @@ export default function IssuesTable() {
           aria-label='Issues table showing all issues with sorting and filtering options'
           selectedKeys={selectedKeys}
           sortDescriptor={sortDescriptor}
-          bottomContent={bottomContent}
-          topContent={topContent}
+          bottomContent={
+            <BottomContent
+              issues={issues}
+              isLoadingRefresh={isLoadingRefresh}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              selectedKeys={selectedKeys}
+              setPage={setPage}
+            />
+          }
+          topContent={
+            <TopContent
+              issues={issues}
+              filterValue={filterValue}
+              handleCloseSeed={handleCloseSeed}
+              isLoadingNew={isLoadingNew}
+              isLoadingRefresh={isLoadingRefresh}
+              isLoadingSeed={isLoadingSeed}
+              isOpenSeed={isOpenSeed}
+              numberOfSeed={numberOfSeed}
+              onClickRefresh={onClickRefresh}
+              onOpenChangeSeed={onOpenChangeSeed}
+              onOpenSeed={onOpenSeed}
+              onPressNew={onPressNew}
+              onPressSeed={onPressSeed}
+              onRowsPerPageChange={onRowsPerPageChange}
+              onSearchChange={onSearchChange}
+              rowsPerPage={rowsPerPage}
+              setFilterValue={setFilterValue}
+              setNumberOfSeed={setNumberOfSeed}
+              setStatusFilter={setStatusFilter}
+              setVisibleColumns={setVisibleColumns}
+              status={status}
+              statusFilter={statusFilter}
+              visibleColumns={visibleColumns}
+            />
+          }
           onSelectionChange={setSelectedKeys}
           onSortChange={handleSortChange}
         >
@@ -337,7 +148,7 @@ export default function IssuesTable() {
           <ModalContent>
             <ModalHeader className='flex flex-col gap-1'>Delete {issue?.title}?</ModalHeader>
             <ModalBody>
-              <p>This Action can&apos;t be undone.</p>
+              <Text>This Action can&apos;t be undone.</Text>
             </ModalBody>
             <ModalFooter>
               <Button color='default' variant='light' onPress={onCloseDelete}>
@@ -355,7 +166,8 @@ export default function IssuesTable() {
 }
 
 const useIssues = (searchParams: ReadonlyURLSearchParams) => {
-  const isValid = searchParams.has('status') || searchParams.has('filter');
+  const isValid =
+    searchParams.has('status') || searchParams.has('sortBy') || searchParams.has('search');
   const query = searchParams.toString();
   return useQuery<Issue[]>({
     queryKey: ['issues'],

@@ -4,23 +4,23 @@ import Chip from '@/components/chip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { seedIssues } from '@/lib/seedIssues';
 import { cn } from '@/lib/utils';
+import { issuesQuerySchema } from '@/lib/validationSchemas';
 import { Button } from '@nextui-org/button';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@nextui-org/dropdown';
 import { Link } from '@nextui-org/link';
 import { Selection, SortDescriptor } from '@nextui-org/table';
 import { useDisclosure } from '@nextui-org/use-disclosure';
-import { Issue, Status } from '@prisma/client';
-import { Flex } from '@radix-ui/themes';
+import { Issue } from '@prisma/client';
+import { Flex, Text } from '@radix-ui/themes';
 import { QueryObserverResult, RefetchOptions } from '@tanstack/react-query';
 import { difference } from 'lodash';
 import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
-import { ReadonlyURLSearchParams, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ChangeEvent, Key, useEffect, useRef, useState } from 'react';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { Id, toast } from 'react-toastify';
 import { columns, priorities, statusOptions } from './_components/utils';
-import { issuesQuerySchema } from '@/lib/validationSchemas';
 
 const INITIAL_VISIBLE_COLUMNS = [
   'title',
@@ -32,12 +32,12 @@ const INITIAL_VISIBLE_COLUMNS = [
 ];
 
 const DataTableHook = (
-  refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<Issue[], Error>>,
-  searchParams: ReadonlyURLSearchParams
+  refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<Issue[], Error>>
 ) => {
   const router = useRouter();
   const { status } = useSession();
-  let { theme, systemTheme } = useTheme();
+  const searchParams = useSearchParams();
+  const { theme, systemTheme } = useTheme();
   const [issue, setIssue] = useState<Issue | undefined>(undefined);
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
   const [isLoadingNew, setIsLoadingNew] = useState(false);
@@ -47,7 +47,12 @@ const DataTableHook = (
   const [visibleColumns, setVisibleColumns] = useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [page, setPage] = useState(1);
-  const [filterValue, setFilterValue] = useState('');
+  const [filterValue, setFilterValue] = useState(() => {
+    if (!searchParams.has('search')) return '';
+    const valid = issuesQuerySchema.safeParse({ search: searchParams.get('search') });
+    if (!valid.success) return '';
+    return valid.data.search;
+  });
   const [statusFilter, setStatusFilter] = useState<Selection>(() => {
     if (!searchParams.has('status')) return 'all';
     const valid = issuesQuerySchema.safeParse({ status: searchParams.get('status')?.split(',') });
@@ -55,7 +60,7 @@ const DataTableHook = (
     return new Set(valid.data.status);
   });
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>(() => {
-    if (!searchParams.has('sortBy')) return { column: 'createdAt', direction: 'ascending' };
+    if (!searchParams.has('sortBy')) return { column: 'createdAt', direction: 'descending' };
     const valid = issuesQuerySchema.safeParse({
       sortBy: searchParams.get('sortBy'),
       direction: searchParams.get('direction'),
@@ -91,18 +96,6 @@ const DataTableHook = (
     onClose: onCloseSeed,
   } = useDisclosure();
 
-  const deleteQueryString = (entries: string[]) => {
-    const params = new URLSearchParams(searchParams.toString());
-    entries.forEach(name => params.delete(name));
-    return params.toString();
-  };
-
-  const createQueryString = (entries: { name: string; value: string }[]) => {
-    const params = new URLSearchParams(searchParams.toString());
-    entries.forEach(({ name, value }) => params.set(name, value));
-    return params.toString();
-  };
-
   useEffect(() => {
     if (statusFilter === 'all') return;
     const filter = Array.from(statusFilter);
@@ -111,12 +104,13 @@ const DataTableHook = (
       statusOptions.map(option => option.value),
       filter
     );
+    const params = new URLSearchParams(searchParams.toString());
     if (diff.length === 0) {
-      const query = deleteQueryString(['status']);
-      return router.push('/issues' + '?' + query);
+      const query = deleteQueryString(['status'], params);
+      return router.push('/issues' + (query && query.length > 0) ? '?' + query : '');
     }
-    const query = createQueryString([{ name: 'status', value: filter.join(',') }]);
-    router.push('/issues' + '?' + query);
+    const query = createQueryString([{ name: 'status', value: filter.join(',') }], params);
+    router.push('/issues?' + query);
   }, [router, statusFilter]);
 
   useEffect(() => {
@@ -159,11 +153,13 @@ const DataTableHook = (
       case 'title':
         return {
           content: (
-            <div className='flex'>
+            <Flex>
               <Link href={`/issues/${issue.slug}`} color='primary' underline='hover'>
-                <span className='max-w-[300px] truncate font-medium'>{String(cellValue)}</span>
+                <Text truncate weight='medium' wrap='nowrap'>
+                  {String(cellValue)}
+                </Text>
               </Link>
-            </div>
+            </Flex>
           ),
           textValue: String(cellValue),
         };
@@ -186,14 +182,10 @@ const DataTableHook = (
         return {
           content: (
             <Chip
-              color={['secondary', 'primary'].includes(status.color) ? undefined : status.color}
+              color={status.color}
               label={status.label}
               variant='flat'
               icon={status.icon && <status.icon />}
-              className={cn({
-                'text-violet-500 bg-violet-500/20': status.color === 'secondary',
-                'text-blue-500 bg-blue-500/20': status.color === 'primary',
-              })}
             />
           ),
           textValue: String(cellValue),
@@ -208,14 +200,10 @@ const DataTableHook = (
         return {
           content: (
             <Chip
-              color={['secondary', 'primary'].includes(priority.color) ? undefined : priority.color}
+              color={priority.color}
               label={priority.label}
               variant='faded'
               icon={priority.icon && <priority.icon />}
-              className={cn({
-                'text-violet-500': priority.color === 'secondary',
-                'text-blue-500': priority.color === 'primary',
-              })}
             />
           ),
           textValue: String(cellValue),
@@ -266,13 +254,19 @@ const DataTableHook = (
   };
 
   const onSearchChange = (value?: string) => {
-    if (value) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (!value || value === '') {
+      setFilterValue('');
+      setPage(1);
+      const query = deleteQueryString(['search'], params);
+      return router.push('/issues' + (query && query.length > 0) ? '?' + query : '');
+    } else if (value) {
       setFilterValue(value);
       setPage(1);
-    } else setFilterValue('');
+      const query = createQueryString([{ name: 'search', value }], params);
+      return router.push('/issues?' + query);
+    }
   };
-
-  const hasSearchFilter = Boolean(filterValue);
 
   const onClickRefresh = async () => {
     setIsLoadingRefresh(true);
@@ -379,55 +373,67 @@ const DataTableHook = (
     const valid = issuesQuerySchema.safeParse({ column, direction });
     if (!valid.success) return;
     if (column && direction) {
-      const query = createQueryString([
-        { name: 'sortBy', value: column.toString() },
-        { name: 'direction', value: direction },
-      ]);
+      const params = new URLSearchParams(searchParams.toString());
+      const query = createQueryString(
+        [
+          { name: 'sortBy', value: column.toString() },
+          { name: 'direction', value: direction },
+        ],
+        params
+      );
       setSortDescriptor(descriptor);
-      router.push('/issues' + '?' + query);
+      router.push('/issues?' + query);
     }
   };
 
   return {
-    hasSearchFilter,
+    page,
+    issue,
+    status,
     filterValue,
     statusFilter,
     sortDescriptor,
     rowsPerPage,
-    page,
-    isOpenSeed,
-    onOpenChangeSeed,
     numberOfSeed,
+    selectedKeys,
+    visibleColumns,
+    headerColumns,
+    loadingContent,
+    isOpenSeed,
+    isLoadingRefresh,
+    isLoadingSeed,
+    isLoadingNew,
+    isOpenDelete,
+    onOpenChangeSeed,
     setNumberOfSeed,
     handleCloseSeed,
     onPressSeed,
     setFilterValue,
     onSearchChange,
     onClickRefresh,
-    isLoadingRefresh,
-    isLoadingSeed,
-    isLoadingNew,
     onPressNew,
-    isOpenDelete,
     onOpenChangeDelete,
     onCloseDelete,
     handleDelete,
-    selectedKeys,
     setSelectedKeys,
     onOpenSeed,
     setPage,
     onRowsPerPageChange,
-    visibleColumns,
     setVisibleColumns,
     renderCell,
-    loadingContent,
-    headerColumns,
     setStatusFilter,
-    status,
-    setSortDescriptor,
-    issue,
     handleSortChange,
   };
 };
 
 export default DataTableHook;
+
+const deleteQueryString = (entries: string[], params: URLSearchParams) => {
+  entries.forEach(name => params.delete(name));
+  return params.toString();
+};
+
+const createQueryString = (entries: { name: string; value: string }[], params: URLSearchParams) => {
+  entries.forEach(({ name, value }) => params.set(name, value));
+  return params.toString();
+};

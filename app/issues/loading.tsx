@@ -1,10 +1,11 @@
-import { Spinner } from '@nextui-org/react';
+import { Spinner } from '@nextui-org/spinner';
+import { Flex } from '@radix-ui/themes';
 
 const LoadingPage = () => {
   return (
-    <div className='flex h-max justify-center items-center'>
+    <Flex height='100%' justify='center' align='center'>
       <Spinner />
-    </div>
+    </Flex>
   );
 };
 

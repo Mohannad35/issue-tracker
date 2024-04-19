@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import IssuesTable from './data-table';
+import { Flex } from '@radix-ui/themes';
 
 export const metadata: Metadata = {
   title: 'Issues',
@@ -7,9 +8,9 @@ export const metadata: Metadata = {
 
 const IssuesPage = async () => {
   return (
-    <div className='flex flex-col w-full space-y-5 pb-5'>
+    <Flex direction={'column'}>
       <IssuesTable />
-    </div>
+    </Flex>
   );
 };
 

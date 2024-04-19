@@ -26,14 +26,15 @@ export async function GET(request: NextRequest) {
     status: searchParams.get('status')?.split(','),
     sortBy: searchParams.get('sortBy') || 'createdAt',
     direction: searchParams.get('direction') || 'desc',
+    search: searchParams.get('search'),
   });
 
   if (!validationResult.success)
     return NextResponse.json(formatErrors(validationResult.error), { status: 400 });
 
-  const { status, sortBy, direction } = validationResult.data;
+  const { status, sortBy, direction, search } = validationResult.data;
   const issues = await prisma.issue.findMany({
-    where: { status: { in: status } },
+    where: { title: { contains: search, mode: 'insensitive' }, status: { in: status } },
     orderBy: { [sortBy!]: direction?.replace(/ending$/, '') },
   });
   return NextResponse.json(issues);
