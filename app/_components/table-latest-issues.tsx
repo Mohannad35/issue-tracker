@@ -1,7 +1,7 @@
 'use client';
 
 import { Link } from '@nextui-org/link';
-import { Card } from '@nextui-org/react';
+import { Card, Spinner } from '@nextui-org/react';
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@nextui-org/table';
 import { User } from '@nextui-org/user';
 import { Issue, User as PrismaUser } from '@prisma/client';
@@ -16,7 +16,12 @@ const TableLatestIssues = () => {
   const searchParams = new URLSearchParams({ populate: 'true', take: '5' });
   const { data: issues, isSuccess, error, isLoading, refetch } = useIssues(searchParams);
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading)
+    return (
+      <Flex height='100%' justify='center' align='center'>
+        <Spinner />
+      </Flex>
+    );
   else if (error) return <p>Error: {error.message}</p>;
   else if (isSuccess)
     return (

@@ -14,6 +14,7 @@ if (!process.env.NEXT_PUBLIC_AUTH_GOOGLE_SECRET) {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.NEXT_PUBLIC_AUTH_SECRET,
   adapter: PrismaAdapter(prisma),
+  trustHost: true,
 
   providers: [
     Google({

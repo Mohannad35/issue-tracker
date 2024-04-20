@@ -51,6 +51,7 @@
     "react-resizable-panels": "^2.0.18",
     "react-toastify": "^10.0.5",
     "recharts": "^2.12.5",
+    "sharp": "^0.33.3",
     "slugify": "^1.6.6",
     "swr": "^2.2.5",
     "tailwind-merge": "^2.2.2",
