@@ -1,6 +1,7 @@
 'use client';
 
 import { Link } from '@nextui-org/link';
+import { Card } from '@nextui-org/react';
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@nextui-org/table';
 import { User } from '@nextui-org/user';
 import { Issue, User as PrismaUser } from '@prisma/client';
@@ -10,7 +11,6 @@ import Image from 'next/image';
 import NextLink from 'next/link';
 import ChipPriority from './_components/chip-priority';
 import ChipStatus from './_components/chip-status';
-import { Card } from '@nextui-org/react';
 
 const TableLatestIssues = () => {
   const searchParams = new URLSearchParams({ populate: 'true', take: '5' });

@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
 import '@radix-ui/themes/styles.css';
-import './globals.css';
+import type { Metadata } from 'next';
+import { inter, satisfy } from './_components/fonts';
 import NavBar from './_components/NavBar';
 import { Providers } from './_components/providers';
-import { inter, satisfy } from './_components/fonts';
+import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Issue Tracker',
