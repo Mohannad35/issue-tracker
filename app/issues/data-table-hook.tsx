@@ -1,9 +1,7 @@
 'use client';
 
-import Chip from '@/components/chip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { seedIssues } from '@/lib/seedIssues';
-import { cn } from '@/lib/utils';
 import { issuesQuerySchema } from '@/lib/validationSchemas';
 import { Button } from '@nextui-org/button';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@nextui-org/dropdown';
@@ -17,12 +15,12 @@ import { difference } from 'lodash';
 import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ChangeEvent, Key, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, Key, useCallback, useEffect, useRef, useState } from 'react';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { Id, toast } from 'react-toastify';
-import { columns, priorities, statusOptions } from './_components/utils';
 import ChipPriority from '../_components/chip-priority';
 import ChipStatus from '../_components/chip-status';
+import { columns, statusOptions } from './_components/utils';
 
 const INITIAL_VISIBLE_COLUMNS = [
   'title',
@@ -113,11 +111,17 @@ const DataTableHook = (
     }
     const query = createQueryString([{ name: 'status', value: filter.join(',') }], params);
     router.push('/issues?' + query);
-  }, [router, statusFilter]);
+  }, [router, searchParams, statusFilter]);
+
+  const onClickRefresh = useCallback(async () => {
+    setIsLoadingRefresh(true);
+    await refetch();
+    setIsLoadingRefresh(false);
+  }, [refetch]);
 
   useEffect(() => {
     onClickRefresh();
-  }, [searchParams]);
+  }, [onClickRefresh, searchParams]);
 
   useEffect(() => {
     if (status === 'authenticated')
@@ -245,12 +249,6 @@ const DataTableHook = (
       const query = createQueryString([{ name: 'search', value }], params);
       return router.push('/issues?' + query);
     }
-  };
-
-  const onClickRefresh = async () => {
-    setIsLoadingRefresh(true);
-    await refetch();
-    setIsLoadingRefresh(false);
   };
 
   const handleCloseSeed = () => {

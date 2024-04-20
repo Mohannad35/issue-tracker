@@ -3,11 +3,11 @@ import prisma from '@/prisma/client';
 import { Card, CardFooter, Divider } from '@nextui-org/react';
 import { Flex } from '@radix-ui/themes';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import AssigningIssue from './AssigningIssue';
 import DeleteIssueButton from './delete-issue-button';
 import EditIssueButton from './edit-issue-button';
 import IssueDetails from './issue-details';
-import { cache } from 'react';
 
 const IssuePage = async ({ params: { slug } }: { params: { slug: string } }) => {
   const issue = await fetchIssue(slug);

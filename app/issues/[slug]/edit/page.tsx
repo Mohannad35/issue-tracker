@@ -1,13 +1,6 @@
-import { Issue } from '@prisma/client';
+import prisma from '@/prisma/client';
 import { notFound } from 'next/navigation';
 import EditIssueForm from './edit-issue-form';
-import { headers } from 'next/headers';
-import { Metadata } from 'next';
-import prisma from '@/prisma/client';
-
-export const metadata: Metadata = {
-  title: 'Edit Issue',
-};
 
 export default async function EditIssuePage({ params: { slug } }: { params: { slug: string } }) {
   const issue = await prisma.issue.findUnique({ where: { slug } });

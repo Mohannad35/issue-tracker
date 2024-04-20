@@ -1,6 +1,6 @@
+import { Flex } from '@radix-ui/themes';
 import { Metadata } from 'next';
 import IssuesTable from './data-table';
-import { Flex } from '@radix-ui/themes';
 
 const IssuesPage = async () => {
   return (

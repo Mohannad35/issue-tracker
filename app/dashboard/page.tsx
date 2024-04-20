@@ -1,8 +1,8 @@
 import prisma from '@/prisma/client';
 import { Flex, Grid } from '@radix-ui/themes';
 import { Metadata } from 'next';
-import IssueSummary from '../_components/IssueSummary';
 import IssueChart from '../_components/IssueChart';
+import IssueSummary from '../_components/IssueSummary';
 import TableLatestIssues from '../_components/table-latest-issues';
 
 const DashboardPage = async () => {
