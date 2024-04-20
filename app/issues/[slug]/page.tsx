@@ -7,9 +7,10 @@ import AssigningIssue from './AssigningIssue';
 import DeleteIssueButton from './delete-issue-button';
 import EditIssueButton from './edit-issue-button';
 import IssueDetails from './issue-details';
+import { cache } from 'react';
 
 const IssuePage = async ({ params: { slug } }: { params: { slug: string } }) => {
-  const issue = await prisma.issue.findUnique({ where: { slug } });
+  const issue = await fetchIssue(slug);
   if (!issue) notFound();
   const session = await auth();
 
@@ -39,8 +40,12 @@ const IssuePage = async ({ params: { slug } }: { params: { slug: string } }) => 
 
 export default IssuePage;
 
+const fetchIssue = cache((issueSlug: string) =>
+  prisma.issue.findUnique({ where: { slug: issueSlug } })
+);
+
 export async function generateMetadata({ params: { slug } }: { params: { slug: string } }) {
-  const issue = await prisma.issue.findUnique({ where: { slug } });
+  const issue = await fetchIssue(slug);
 
   return {
     title: issue?.title,
