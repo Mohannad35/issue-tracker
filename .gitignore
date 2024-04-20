@@ -41,3 +41,5 @@ next-env.d.ts
 
 # react emails
 .react-email/
+# Sentry Config File
+.sentryclirc
