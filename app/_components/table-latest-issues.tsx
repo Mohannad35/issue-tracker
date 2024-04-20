@@ -9,8 +9,8 @@ import { Flex, Heading } from '@radix-ui/themes';
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import NextLink from 'next/link';
-import ChipPriority from './_components/chip-priority';
-import ChipStatus from './_components/chip-status';
+import ChipStatus from './chip-status';
+import ChipPriority from './chip-priority';
 
 const TableLatestIssues = () => {
   const searchParams = new URLSearchParams({ populate: 'true', take: '5' });

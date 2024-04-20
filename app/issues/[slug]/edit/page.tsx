@@ -3,21 +3,14 @@ import { notFound } from 'next/navigation';
 import EditIssueForm from './edit-issue-form';
 import { headers } from 'next/headers';
 import { Metadata } from 'next';
+import prisma from '@/prisma/client';
 
 export const metadata: Metadata = {
   title: 'Edit Issue',
 };
 
-// This function is used to fetch issue from the server.
-async function getIssue(slug: string) {
-  const headersList = headers();
-  const baseUrl = `${headersList.get('x-forwarded-proto')}://${headersList.get('host')}`;
-  const API = `${baseUrl}/api/issues/${slug}`;
-  return await (await fetch(API, { cache: 'no-store' })).json();
-}
-
 export default async function EditIssuePage({ params: { slug } }: { params: { slug: string } }) {
-  const issue: Issue = await getIssue(slug);
+  const issue = await prisma.issue.findUnique({ where: { slug } });
 
   if (!issue) notFound();
 
@@ -26,4 +19,13 @@ export default async function EditIssuePage({ params: { slug } }: { params: { sl
       <EditIssueForm issue={issue} />
     </div>
   );
+}
+
+export async function generateMetadata({ params: { slug } }: { params: { slug: string } }) {
+  const issue = await prisma.issue.findUnique({ where: { slug } });
+
+  return {
+    title: `Edit: ${issue?.title}`,
+    description: `Editing issue ${issue?.title}`,
+  };
 }
