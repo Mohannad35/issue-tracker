@@ -2,6 +2,7 @@
 
 import { FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@nextui-org/react';
+import { Priority, Status } from '@prisma/client';
 import { Control } from 'react-hook-form';
 
 const TitleFormField = ({
@@ -11,8 +12,8 @@ const TitleFormField = ({
     {
       title: string;
       description: string;
-      status?: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED' | undefined;
-      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | undefined;
+      status?: Status | undefined;
+      priority?: Priority | undefined;
     },
     any
   >;

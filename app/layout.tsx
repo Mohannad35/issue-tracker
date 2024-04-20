@@ -17,10 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' suppressHydrationWarning className={`${inter.variable} ${satisfy.variable}`}>
-      <body className='font-inter min-h-svh'>
+      <body className='min-h-svh'>
         <Providers>
           <NavBar />
-          <main className='container'>{children}</main>
+          <main className='container font-inter'>{children}</main>
         </Providers>
       </body>
     </html>

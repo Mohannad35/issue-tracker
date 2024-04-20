@@ -1,10 +1,10 @@
 import { auth } from '@/auth';
+import { formatErrors } from '@/lib/utils';
 import { updateIssueSchema } from '@/lib/validationSchemas';
 import prisma from '@/prisma/client';
 import { nanoid } from 'nanoid';
 import { NextRequest, NextResponse } from 'next/server';
 import slugify from 'slugify';
-import { formatErrors } from '../../_utils/format-errors';
 
 export async function GET(
   request: NextRequest,

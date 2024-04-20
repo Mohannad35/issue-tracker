@@ -8,7 +8,7 @@ export const issueSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string(),
-  status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED']),
+  status: z.enum(['OPEN', 'IN_PROGRESS', 'CLOSED', 'CANCELLED']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
   slug: z.string(),
   createdAt: z.coerce.date(),
@@ -54,8 +54,8 @@ export const columns = [
 ];
 
 export interface StatusOption {
-  label: 'Open' | 'In Progress' | 'Done' | 'Canceled';
-  value: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
+  label: 'Open' | 'In Progress' | 'Closed' | 'Canceled';
+  value: 'OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'CANCELLED';
   icon: typeof BsFillCircleFill;
   color: 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning';
 }
@@ -74,8 +74,8 @@ export const statusOptions: StatusOption[] = [
     color: 'warning',
   },
   {
-    label: 'Done',
-    value: 'DONE',
+    label: 'Closed',
+    value: 'CLOSED',
     icon: FaCheckCircle,
     color: 'success',
   },

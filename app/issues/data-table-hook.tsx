@@ -21,6 +21,8 @@ import { ChangeEvent, Key, useEffect, useRef, useState } from 'react';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { Id, toast } from 'react-toastify';
 import { columns, priorities, statusOptions } from './_components/utils';
+import ChipPriority from '../_components/chip-priority';
+import ChipStatus from '../_components/chip-status';
 
 const INITIAL_VISIBLE_COLUMNS = [
   'title',
@@ -148,6 +150,7 @@ const DataTableHook = (
     issue: Issue,
     columnKey: Key
   ): { content: JSX.Element; textValue: string } => {
+    const { title, description, status, priority, createdAt } = issue;
     const cellValue = issue[columnKey as keyof Issue];
     switch (columnKey) {
       case 'title':
@@ -155,67 +158,43 @@ const DataTableHook = (
           content: (
             <Flex>
               <Link href={`/issues/${issue.slug}`} color='primary' underline='hover'>
-                <Text truncate weight='medium' wrap='nowrap'>
-                  {String(cellValue)}
+                <Text truncate weight='medium' wrap='nowrap' className='max-w-[300px]'>
+                  {title}
                 </Text>
               </Link>
             </Flex>
           ),
-          textValue: String(cellValue),
+          textValue: String(title),
         };
       case 'description':
         return {
           content: (
-            <div className='flex'>
-              <span className='max-w-[400px] truncate'>{String(cellValue)}</span>
-            </div>
+            <Flex>
+              <Text truncate wrap='nowrap' className='max-w-[400px]'>
+                {description}
+              </Text>
+            </Flex>
           ),
-          textValue: String(cellValue),
+          textValue: String(description),
         };
       case 'status':
-        const status = statusOptions.find(status => status.value === cellValue);
-        if (!status)
-          return {
-            content: <Chip color='default' label='Unknown' variant='flat' />,
-            textValue: String(cellValue),
-          };
         return {
-          content: (
-            <Chip
-              color={status.color}
-              label={status.label}
-              variant='flat'
-              icon={status.icon && <status.icon />}
-            />
-          ),
-          textValue: String(cellValue),
+          content: <ChipStatus status={status} />,
+          textValue: String(status),
         };
       case 'priority':
-        const priority = priorities.find(priority => priority.value === cellValue);
-        if (!priority)
-          return {
-            content: <Chip color='default' label='Unknown' variant='flat' />,
-            textValue: String(cellValue),
-          };
         return {
-          content: (
-            <Chip
-              color={priority.color}
-              label={priority.label}
-              variant='faded'
-              icon={priority.icon && <priority.icon />}
-            />
-          ),
-          textValue: String(cellValue),
+          content: <ChipPriority priority={priority} />,
+          textValue: String(priority),
         };
       case 'createdAt':
         return {
           content: (
             <div className='flex items-center'>
-              <span>{cellValue ? new Date(cellValue).toDateString() : ''}</span>
+              <span>{new Date(createdAt).toDateString()}</span>
             </div>
           ),
-          textValue: String(cellValue),
+          textValue: new Date(createdAt).toDateString(),
         };
       case 'actions':
         return {
@@ -241,7 +220,7 @@ const DataTableHook = (
               </Dropdown>
             </div>
           ),
-          textValue: String(cellValue),
+          textValue: 'actions',
         };
       default:
         return { content: <div>{String(cellValue)}</div>, textValue: String(cellValue) };

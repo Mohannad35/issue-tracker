@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { createIssueSchema } from './validationSchemas';
 
-const status = ['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED'];
+const status = ['OPEN', 'IN_PROGRESS', 'CLOSED', 'CANCELLED'];
 const priority = ['LOW', 'MEDIUM', 'HIGH'];
 
 const generateIssue = () => {

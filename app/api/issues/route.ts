@@ -1,10 +1,11 @@
 import { auth } from '@/auth';
+import { formatErrors, getQueryObject } from '@/lib/utils';
 import { createIssueSchema, issuesQuerySchema } from '@/lib/validationSchemas';
 import prisma from '@/prisma/client';
+import { Status } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { NextRequest, NextResponse } from 'next/server';
 import slugify from 'slugify';
-import { formatErrors } from '../_utils/format-errors';
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -22,20 +23,18 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const validationResult = issuesQuerySchema.safeParse({
-    status: searchParams.get('status')?.split(','),
-    sortBy: searchParams.get('sortBy') || 'createdAt',
-    direction: searchParams.get('direction') || 'desc',
-    search: searchParams.get('search'),
-  });
-
+  const query = getQueryObject(searchParams);
+  const validationResult = issuesQuerySchema.safeParse(query);
   if (!validationResult.success)
     return NextResponse.json(formatErrors(validationResult.error), { status: 400 });
 
-  const { status, sortBy, direction, search } = validationResult.data;
+  const { status, sortBy, direction, search, populate, skip, take } = validationResult.data;
   const issues = await prisma.issue.findMany({
-    where: { title: { contains: search, mode: 'insensitive' }, status: { in: status } },
-    orderBy: { [sortBy!]: direction?.replace(/ending$/, '') },
+    where: { title: { contains: search, mode: 'insensitive' }, status: { in: status as Status[] } },
+    orderBy: { [sortBy!]: direction },
+    take,
+    skip,
+    include: { assignee: populate },
   });
   return NextResponse.json(issues);
 }

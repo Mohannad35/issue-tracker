@@ -2,6 +2,7 @@
 
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Priority, Status } from '@prisma/client';
 import MDEditor from '@uiw/react-md-editor';
 import { Control } from 'react-hook-form';
 
@@ -15,8 +16,8 @@ const DescriptionFormField = ({
     {
       title: string;
       description: string;
-      status?: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED' | undefined;
-      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | undefined;
+      status?: Status | undefined;
+      priority?: Priority | undefined;
     },
     any
   >;

@@ -34,7 +34,7 @@ export const createIssueSchema = z
   .object({
     title,
     description,
-    status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED']).optional(),
+    status: z.enum(['OPEN', 'IN_PROGRESS', 'CLOSED', 'CANCELLED']).optional(),
     priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   })
   .strict();
@@ -43,7 +43,7 @@ export const updateIssueSchema = z
   .object({
     title,
     description,
-    status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED']),
+    status: z.enum(['OPEN', 'IN_PROGRESS', 'CLOSED', 'CANCELLED']),
     priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
     assigneeId: z
       .string()
@@ -63,12 +63,37 @@ export const updateIssueSchema = z
   );
 
 export const issuesQuerySchema = z.object({
-  status: z.array(z.enum(['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED'])).optional(),
-  sortBy: z.enum(['title', 'description', 'status', 'priority', 'createdAt']).optional(),
-  direction: z.enum(['asc', 'desc', 'ascending', 'descending']).optional(),
+  sortBy: z
+    .string()
+    .regex(/^(title|description|status|priority|createdAt)$/g)
+    .default('createdAt'),
+  direction: z
+    .string()
+    .regex(/^(asc|desc|ascending|descending)$/g)
+    .default('desc')
+    .transform(value => value.replace(/ending$/, '')),
+  populate: z
+    .enum(['true', 'false'])
+    .transform(value => (value === 'true' ? true : false))
+    .optional(),
+  status: z
+    .string()
+    .regex(/^(OPEN|IN_PROGRESS|CLOSED|CANCELLED)(,(OPEN|IN_PROGRESS|CLOSED|CANCELLED))*$/g)
+    .transform(value => value.split(','))
+    .optional(),
   search: z
     .string()
     .nullable()
     .transform(value => (value === '' || value === null ? undefined : value))
+    .optional(),
+  take: z
+    .string()
+    .regex(/^[0-9]+$/g, 'Invalid take value')
+    .transform(value => parseInt(value))
+    .optional(),
+  skip: z
+    .string()
+    .regex(/^[0-9]+$/g, 'Invalid skip value')
+    .transform(value => parseInt(value))
     .optional(),
 });

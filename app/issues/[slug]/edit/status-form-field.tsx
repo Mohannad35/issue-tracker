@@ -4,6 +4,7 @@ import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/f
 import { Select, SelectItem } from '@nextui-org/react';
 import { Control } from 'react-hook-form';
 import { statusOptions } from '../../_components/utils';
+import { Priority, Status } from '@prisma/client';
 
 const StatusFormField = ({
   formControl,
@@ -12,8 +13,8 @@ const StatusFormField = ({
     {
       title: string;
       description: string;
-      status?: 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED' | undefined;
-      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | undefined;
+      status?: Status | undefined;
+      priority?: Priority | undefined;
     },
     any
   >;
